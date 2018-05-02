@@ -28,6 +28,7 @@
 #include "R2Pixel.h"
 #include "R2Image.h"
 
+#include <string>
 
 
 // Program arguments
@@ -284,17 +285,18 @@ main(int argc, char **argv)
       std::string firstfilename = "/Users/myself/test/00000.jpg";
       R2Image *first_image = new R2Image(firstfilename);
 
-      first_image->FirstFrameProcessing();
+      first_image->Harris(2.0);
 
       for (int i = 1; i < 300; i++) {
         std::string currentfilename = "/Users/myself/test/"%07d".jpg";
         R2Image *current_image = new R2Image(currentfilename);
 
-        std::string currentfilenameoutput = "/Users/myself/test/output/"%07d".jpg";
+        char currentfilenameoutput = "/Users/myself/test/output/"%07d".jpg";
 
-        current_image->brightness(i/100);
-        current_image->write(currentfilenameoutput);
+        current_image->Brighten(i/100);
+        current_image->Write(currentfilenameoutput);
 
+        
         // first_image->FirstFrameProcessing(i, current_image);
         delete(current_image); // avoid huge memory leak
       }
