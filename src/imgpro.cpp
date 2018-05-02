@@ -48,7 +48,7 @@ static char options[] =
 "  -sharpen \n"
 "  -matchTranslation <file:other_image>\n"
 "  -matchHomography <file:other_image>\n"
-"  -video\n";
+"  -graffiti\n";
 
 
 static void
@@ -138,72 +138,72 @@ main(int argc, char **argv)
     if (!strcmp(argv[i], "-help")) {
       ShowUsage();
     }
-	// if (!strcmp(argv[i], "-svdTest")) {
-  //     R2Image *image = new R2Image();
-	//   image->svdTest();
-	//   return 0;
-  //   }
-	else if (!strcmp(argv[i], "-video")) {
-		printf("Video processing started\n");
+    // if (!strcmp(argv[i], "-svdTest")) {
+    //     R2Image *image = new R2Image();
+    //   image->svdTest();
+    //   return 0;
+    //   }
+    else if (!strcmp(argv[i], "-graffiti")) {
+      printf("Video processing started\n");
 
-		char inputName[100] = "../../videoinput/input%07d.jpg";
-		char outputName[100] = "../../videooutput/output%07d.jpg";
+      char inputName[100] = "../video_input/test_2/input%07d.jpg";
+      char outputName[100] = "../video_output/output%07d.jpg";
 
-		R2Image *mainImage = new R2Image();
-		char currentFilename[100];
-		char currentOutputFilename[100];
-		if (!mainImage) {
-			fprintf(stderr, "Unable to allocate image\n");
-			exit(-1);
-		}
-		// read very first frame
-		sprintf(currentFilename, inputName, 0);
-		if (!mainImage->Read(currentFilename)) {
-			fprintf(stderr, "Unable to read first image\n");
-			exit(-1);
-		}
+      R2Image *mainImage = new R2Image();
+      char currentFilename[100];
+      char currentOutputFilename[100];
+      if (!mainImage) {
+        fprintf(stderr, "Unable to allocate image\n");
+        exit(-1);
+      }
+      // read very first frame
+      sprintf(currentFilename, inputName, 0);
+      if (!mainImage->Read(currentFilename)) {
+        fprintf(stderr, "Unable to read first image\n");
+        exit(-1);
+      }
 
-		// =============== VIDEO PROCESSING ===============
+      // =============== VIDEO PROCESSING ===============
 
-		mainImage->Blur(3.0f);
-		// here you could call mainImage->FirstFrameProcessing( );
+      mainImage->Harris(2.0);
+      // here you could call mainImage->FirstFrameProcessing( );
 
-		int end = 88;
-		for (int i = 1; i < end; i++)
-		{
-			R2Image *currentImage = new R2Image();
-			if (!currentImage) {
-				fprintf(stderr, "Unable to allocate image %d\n",i);
-				exit(-1);
-			}
+      int end = 88;
+      for (int i = 1; i < end; i++)
+      {
+        R2Image *currentImage = new R2Image();
+        if (!currentImage) {
+          fprintf(stderr, "Unable to allocate image %d\n",i);
+          exit(-1);
+        }
 
-			sprintf(currentFilename, inputName, i);
-			sprintf(currentOutputFilename, outputName, i);
+        sprintf(currentFilename, inputName, i);
+        sprintf(currentOutputFilename, outputName, i);
 
-			printf("Processing file %s\n", currentFilename);
-			if (!currentImage->Read(currentFilename)) {
-				fprintf(stderr, "Unable to read image %d\n", i);
-				exit(-1);
-			}
+        printf("Processing file %s\n", currentFilename);
+        if (!currentImage->Read(currentFilename)) {
+          fprintf(stderr, "Unable to read image %d\n", i);
+          exit(-1);
+        }
 
-			currentImage->Brighten((float)i/(float)end);
-			// here you could call
-			//
-			// mainImage->FrameProcessing( currentImage );
-			//
-			// where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
+        currentImage->Brighten((float)i/(float)end);
+        // here you could call
+        //
+        // mainImage->FrameProcessing( currentImage );
+        //
+        // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
 
-			// write result to file
-			if (!currentImage->Write(currentOutputFilename)) {
-				fprintf(stderr, "Unable to write %s\n", currentOutputFilename);
-				exit(-1);
-			}
-			delete currentImage;
-		}
-		delete mainImage;
-		// Return success
-		return EXIT_SUCCESS;
-	}
+        // write result to file
+        if (!currentImage->Write(currentOutputFilename)) {
+          fprintf(stderr, "Unable to write %s\n", currentOutputFilename);
+          exit(-1);
+        }
+        delete currentImage;
+      }
+      delete mainImage;
+      // Return success
+      return EXIT_SUCCESS;
+    }
   }
 
   // Read input and output image filenames
@@ -237,23 +237,23 @@ main(int argc, char **argv)
       argv += 2, argc -=2;
       image->Brighten(factor);
     }
-	else if (!strcmp(*argv, "-sobelX")) {
+    else if (!strcmp(*argv, "-sobelX")) {
       argv++, argc--;
       image->SobelX();
     }
-	else if (!strcmp(*argv, "-sobelY")) {
+    else if (!strcmp(*argv, "-sobelY")) {
       argv++, argc--;
       image->SobelY();
     }
-  else if (!strcmp(*argv, "-median")) {
-    argv++, argc--;
-    image->MedianFilter();
-  }
-  else if (!strcmp(*argv, "-bilateral")) {
-    argv++, argc--;
-    image->BilateralFilter();
-  }
-	else if (!strcmp(*argv, "-log")) {
+    else if (!strcmp(*argv, "-median")) {
+      argv++, argc--;
+      image->MedianFilter();
+    }
+    else if (!strcmp(*argv, "-bilateral")) {
+      argv++, argc--;
+      image->BilateralFilter();
+    }
+    else if (!strcmp(*argv, "-log")) {
       argv++, argc--;
       image->LoG();
     }
@@ -263,7 +263,7 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
       image->ChangeSaturation(factor);
     }
-	else if (!strcmp(*argv, "-harris")) {
+    else if (!strcmp(*argv, "-harris")) {
       CheckOption(*argv, argc, 2);
       double sigma = atof(argv[1]);
       argv += 2, argc -= 2;
@@ -275,36 +275,6 @@ main(int argc, char **argv)
       argv += 2, argc -= 2;
       image->Blur(sigma);
     }
-
-    else if (!strcmp(*argv, "-graffiti")) {
-      CheckOption(*argv, argc, 2);
-      double sigma = atof(argv[1]);
-      argv += 2, argc -= 2;
-
-      // PSEUDO CODE
-      std::string firstfilename = "/Users/myself/test/00000.jpg";
-      R2Image *first_image = new R2Image(firstfilename);
-
-      first_image->Harris(2.0);
-
-      for (int i = 1; i < 300; i++) {
-        std::string currentfilename = "/Users/myself/test/"%07d".jpg";
-        R2Image *current_image = new R2Image(currentfilename);
-
-        char currentfilenameoutput = "/Users/myself/test/output/"%07d".jpg";
-
-        current_image->Brighten(i/100);
-        current_image->Write(currentfilenameoutput);
-
-        
-        // first_image->FirstFrameProcessing(i, current_image);
-        delete(current_image); // avoid huge memory leak
-      }
-
-
-
-    }
-
     else if (!strcmp(*argv, "-sharpen")) {
       argv++, argc--;
       image->Sharpen();
