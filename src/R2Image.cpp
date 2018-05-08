@@ -540,6 +540,9 @@ Harris(double sigma)
 {
   // Harris corner detector. Make use of the previously developed filters, such as the Gaussian blur filter
   // Output should be 50% grey at flat regions, white at corners and black/dark near edges
+  recentLocations.clear();
+  // recentImage = new R2Image(*this);  
+
   R2Image img1(*this);
   R2Image img2(*this);
   R2Image img3(*this);
@@ -562,7 +565,7 @@ Harris(double sigma)
   img3.Blur(sigma);
 
   vector<Feature> featureVec;
-  vector<Feature> featureVecSubset;
+  // vector<Feature> recentLocations;
 
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
@@ -582,12 +585,13 @@ Harris(double sigma)
   // sort vector in descending order
   sort(featureVec.rbegin(), featureVec.rend());
 
-  // add 150 elements with high harris scores to new vector
+  // add 150 elements with high harris scores to new vector (recentLocations)
   R2Pixel *redPixel = new R2Pixel(1,0,0,0);
   Feature currentFeature;
   int counter = 0;
   int index = 0;
   bool window_isEmpty;
+  
   while (counter < 150 && index < featureVec.size()) {
     currentFeature = featureVec[index];
     window_isEmpty = true;
@@ -605,12 +609,108 @@ Harris(double sigma)
     }
     if (window_isEmpty) {
       temp.SetPixel(currentFeature.centerX, currentFeature.centerY, *redPixel);
-      featureVecSubset.push_back(currentFeature);
+      recentLocations.push_back(currentFeature);
       counter++;
     }
     index++;
   }
-  return featureVecSubset;
+}
+
+void R2Image::
+frameProcessing(R2Image * otherImage)
+{
+  int px;
+  int py;
+  double sum;
+  double min;
+  int minX;
+  int minY;
+  vector<Feature> min_ssd;
+  // vector<Feature> vec_copy;
+
+  for (int a = 0; a < recentLocations.size(); a++) {
+    px = recentLocations[a].centerX;
+    py = recentLocations[a].centerY;
+    min = 1000000;
+    minX = 0;
+    minY = 0;
+
+    if (px + (-0.1 * width) >= 0 && px + (-0.1 * width) < width && py + (-0.1 * height) >= 0 && py + (-0.1 * height) < height) {
+      for (int b = px + (-0.1 * width); b < px + (0.1 * width); b++) {
+        for (int c = py + (-0.1 * height); c < py + (0.1 * height); c++) {
+          R2Pixel *ssd = new R2Pixel();
+          for (int u = -3; u <= 3; u++) {
+            for (int v = -3; v <= 3; v++) {
+              // calculate SSD for this region
+              *ssd += (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v)) * (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v));
+              sum = ssd->Red() + ssd->Green() + ssd->Blue();
+            }
+          }
+
+          if (sum < min) {
+            min = sum;
+            minX = b;
+            minY = c;
+          }
+        }
+      }
+      // add pixel with smallest SSD to vector
+      // vec_copy.push_back(Feature(px, py, 0));
+      min_ssd.push_back(Feature(minX, minY, min));
+    }
+  }
+
+  cout << "recentLocations size: " << recentLocations.size() << endl;
+  cout << "min_ssd size: " << min_ssd.size() << endl;
+
+  // draw lines around tracked features
+  for (int i = 0; i < min_ssd.size(); i++) {
+    for (int j = 0; j < 5; j++) {
+      if ((min_ssd[i].centerX - 5 > 0)
+      && (min_ssd[i].centerX + 5 < width)
+      && (min_ssd[i].centerY - 5 > 0)
+      && (min_ssd[i].centerY + 5 < height)) {
+
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetRed(1);
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetGreen(0);
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetRed(1);
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetGreen(0);
+        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetRed(1);
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetGreen(0);
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetRed(1);
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetGreen(0);
+        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetRed(1);
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetGreen(0);
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetRed(1);
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetGreen(0);
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetRed(1);
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetGreen(0);
+        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetBlue(0);
+
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetRed(1);
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetGreen(0);
+        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetBlue(0);
+      }
+    }
+  }
+
+  // update recentLocations vector (a list of the most recently tracked features)
+  recentLocations.clear();
+  for (int i = 0; i < min_ssd.size(); i++) {
+    recentLocations.push_back(min_ssd[i]);
+  }
 }
 
 void R2Image::
@@ -677,7 +777,7 @@ blendOtherImageTranslated(R2Image * otherImage)
   // compute the matching translation (pixel precision is OK), and blend the translated "otherImage"
   // into this image with a 50% opacity.
 
-  vector<Feature> featureVecSubset = otherImage->Harris(2.0);
+  vector<Feature> recentLocations = otherImage->Harris(2.0);
 
   int px;
   int py;
@@ -688,9 +788,9 @@ blendOtherImageTranslated(R2Image * otherImage)
   vector<Feature> min_ssd;
   vector<Feature> vec_copy;
 
-  for (int a = 0; a < featureVecSubset.size(); a++) {
-    px = featureVecSubset[a].centerX;
-    py = featureVecSubset[a].centerY;
+  for (int a = 0; a < recentLocations.size(); a++) {
+    px = recentLocations[a].centerX;
+    py = recentLocations[a].centerY;
     min = 1000000;
     minX = 0;
     minY = 0;
@@ -866,6 +966,11 @@ blendOtherImageTranslated(R2Image * otherImage)
       optimal_xd.push_back(min_ssd[i].centerX);
       optimal_yd.push_back(min_ssd[i].centerY);
     }
+  }
+
+  // draw lines
+  for (int i = 0; i < optimal_x.size(); i++) {
+    line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
   }
 
   matrixH_optimal = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);

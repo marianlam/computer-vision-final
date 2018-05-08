@@ -1,6 +1,5 @@
-#import <vector>
+#include <vector>
 using namespace std;
-
 
 // Include file for image class
 #ifndef R2_IMAGE_INCLUDED
@@ -139,6 +138,9 @@ class R2Image {
   double** blendOtherImageTranslated(R2Image * otherImage);
   void blendOtherImageHomography(R2Image * otherImage);
 
+  // Video Processing
+  void frameProcessing(R2Image * otherImage);
+
   // File reading/writing
   int Read(const char *filename);
   int ReadBMP(const char *filename);
@@ -159,6 +161,8 @@ class R2Image {
   int npixels;
   int width;
   int height;
+  vector<Feature> recentLocations;
+  R2Image* recentImage;
 };
 
 
