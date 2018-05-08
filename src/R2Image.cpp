@@ -671,6 +671,7 @@ frameProcessing(R2Image * otherImage)
       && (min_ssd[i].centerY - 5 > 0)
       && (min_ssd[i].centerY + 5 < height)) {
 
+
         Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetRed(1);
         Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetGreen(0);
         Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetBlue(0);
