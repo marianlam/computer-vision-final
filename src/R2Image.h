@@ -127,7 +127,7 @@ class R2Image {
   void SobelY();
   void LoG();
   void Blur(double sigma);
-  vector<Feature> Harris(double sigma);
+  void Harris(double sigma);
   void Sharpen(void);
 
   // Extra Credit #1

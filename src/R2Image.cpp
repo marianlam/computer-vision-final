@@ -535,7 +535,7 @@ BilateralFilter(void) {
   // Implementation of a bilateral filter
 }
 
-vector<Feature> R2Image::
+void R2Image::
 Harris(double sigma)
 {
   // Harris corner detector. Make use of the previously developed filters, such as the Gaussian blur filter
@@ -595,8 +595,8 @@ Harris(double sigma)
   while (counter < 150 && index < featureVec.size()) {
     currentFeature = featureVec[index];
     window_isEmpty = true;
-    for (int i = -15; i <= 15; i++) {
-      for (int j = -15; j <= 15; j++) {
+    for (int i = -10; i < 10; i++) {
+      for (int j = -10; j <= 10; j++) {
         if ((currentFeature.centerX + i > 0)
         && (currentFeature.centerX + i < width)
         && (currentFeature.centerY + j > 0)
@@ -622,30 +622,34 @@ frameProcessing(R2Image * otherImage)
   int px;
   int py;
   double sum;
-  double min;
+  int min;
   int minX;
   int minY;
   vector<Feature> min_ssd;
+  int outCount = 0; 
   // vector<Feature> vec_copy;
 
   for (int a = 0; a < recentLocations.size(); a++) {
     px = recentLocations[a].centerX;
     py = recentLocations[a].centerY;
-    min = 1000000;
+    min = 10000000;
     minX = 0;
     minY = 0;
+    vector<Feature> regionVec;
+  
 
-    if (px + (-0.1 * width) >= 0 && px + (-0.1 * width) < width && py + (-0.1 * height) >= 0 && py + (-0.1 * height) < height) {
+    if ((px + (-0.1 * width)) >= 0 && (px + (-0.1 * width)) <= width && (py + (-0.1 * height)) >= 0 && (py + (-0.1 * height)) <= height) {
       for (int b = px + (-0.1 * width); b < px + (0.1 * width); b++) {
         for (int c = py + (-0.1 * height); c < py + (0.1 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
           for (int u = -3; u <= 3; u++) {
             for (int v = -3; v <= 3; v++) {
               // calculate SSD for this region
-              *ssd += (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v)) * (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v));
+              *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
               sum = ssd->Red() + ssd->Green() + ssd->Blue();
             }
           }
+          //regionVec.push_back(Feature(b,c,*ssd));
 
           if (sum < min) {
             min = sum;
@@ -654,14 +658,25 @@ frameProcessing(R2Image * otherImage)
           }
         }
       }
+      // Feature minimum = regionVec[0];
+      // for(int index = 1; index < regionVec.size(); index++) {
+      //   if(regionVec[index] < minimum){
+      //     minimum = regionVec[index];
+      //   }
+      // }
       // add pixel with smallest SSD to vector
       // vec_copy.push_back(Feature(px, py, 0));
       min_ssd.push_back(Feature(minX, minY, min));
+      //min_ssd.push_back(minimum);
+    // } else {
+
+    // }
     }
   }
 
   cout << "recentLocations size: " << recentLocations.size() << endl;
   cout << "min_ssd size: " << min_ssd.size() << endl;
+  cout << "Out Count: " << outCount << endl;
 
   // draw lines around tracked features
   for (int i = 0; i < min_ssd.size(); i++) {
@@ -671,37 +686,19 @@ frameProcessing(R2Image * otherImage)
       && (min_ssd[i].centerY - 5 > 0)
       && (min_ssd[i].centerY + 5 < height)) {
 
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetRed(1);
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetGreen(0);
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j).SetBlue(0);
+        R2Pixel redPixel(1.0,0.0,0.0,1.0);
+        otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j, redPixel);
+        otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j, redPixel);
 
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetRed(1);
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetGreen(0);
-        Pixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j).SetBlue(0);
+        otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j, redPixel);
+        otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j, redPixel);
 
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetRed(1);
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetGreen(0);
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j).SetBlue(0);
+        otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5, redPixel);
+        otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5, redPixel);
 
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetRed(1);
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetGreen(0);
-        Pixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j).SetBlue(0);
+        otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5, redPixel);
+        otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5, redPixel);
 
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetRed(1);
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetGreen(0);
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5).SetBlue(0);
-
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetRed(1);
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetGreen(0);
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5).SetBlue(0);
-
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetRed(1);
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetGreen(0);
-        Pixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5).SetBlue(0);
-
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetRed(1);
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetGreen(0);
-        Pixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5).SetBlue(0);
       }
     }
   }
@@ -777,7 +774,7 @@ blendOtherImageTranslated(R2Image * otherImage)
   // compute the matching translation (pixel precision is OK), and blend the translated "otherImage"
   // into this image with a 50% opacity.
 
-  vector<Feature> recentLocations = otherImage->Harris(2.0);
+  // vector<Feature> recentLocations = otherImage->Harris(2.0);
 
   int px;
   int py;
