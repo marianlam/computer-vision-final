@@ -150,8 +150,10 @@ main(int argc, char **argv)
       char outputName[100] = "../video_output/output%07d.jpg";
 
       R2Image *mainImage = new R2Image();
-      char currentFilename[100];
-      char currentOutputFilename[100];
+      //char currentFilename[100];
+      char *currentFilename = new char[100];
+      //char currentOutputFilename[100];
+      char *currentOutputFilename = new char[100];
       if (!mainImage) {
         fprintf(stderr, "Unable to allocate image\n");
         exit(-1);
