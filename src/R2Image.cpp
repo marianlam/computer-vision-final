@@ -620,9 +620,6 @@ Harris(double sigma)
   cout << "Recent Location Size" << recentLocations.size() << endl;
   cout << "Rand Index"  << rand_index << endl;
   *chosenFeature = recentLocations[rand_index];
-  //chosenFeatures[0] = *chosenFeature;
-  //chosenFeatures.push_back(chosenFeature);
-  cout << "After Push_Back" << endl;
 
 }
 
@@ -637,8 +634,6 @@ frameProcessing(R2Image * otherImage)
   int minY;
   vector<Feature> min_ssd;
   int outCount = 0; 
-  // vector<Feature> vec_copy;
-  //for (int a = 0; a < 1; a++) {
     px = chosenFeature -> centerX;
     py = chosenFeature -> centerY;
     min = 10000000;
