@@ -615,12 +615,17 @@ Harris(double sigma)
     }
     index++;
   }
-  cout << "Before Rand_Index" << endl;
   int rand_index = rand() % recentLocations.size();;
   cout << "Recent Location Size" << recentLocations.size() << endl;
   cout << "Rand Index"  << rand_index << endl;
-  *chosenFeature = recentLocations[rand_index];
-
+  //Feature chosenFeature = recentLocations[rand_index];
+  chosenIndexes[0]=rand_index;
+  
+  int rand_index2 = rand() % recentLocations.size();
+  chosenIndexes[1]=rand_index2;
+  // for(int i = 0; i < 150; i++){
+  //   chosenIndexes[i]=i;
+  // }
 }
 
 void R2Image::
@@ -634,20 +639,25 @@ frameProcessing(R2Image * otherImage)
   int minY;
   vector<Feature> min_ssd;
   int outCount = 0; 
-    px = chosenFeature -> centerX;
-    py = chosenFeature -> centerY;
+
+  for(int a = 0; a < 2; a++){
+    px = recentLocations[chosenIndexes[a]].centerX;
+    py = recentLocations[chosenIndexes[a]].centerY;
     min = 10000000;
     minX = 0;
     minY = 0;
     vector<Feature> regionVec;
+    // cout << "In for loop" << endl;
       
-
  if ((px + (-0.1 * width)) >= 0 && (px + (-0.1 * width)) <= width && (py + (-0.1 * height)) >= 0 && (py + (-0.1 * height)) <= height) {
+  //  cout << "In if loop" << endl;
       for (int b = px+(-0.1 * width); b < px+(0.1 * width); b++) {
         for (int c = py+(-0.1 * height); c < py+(0.1 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
-          for (int u = -3; u <= 3; u++) {
-            for (int v = -3; v <= 3; v++) {
+          // cout << "in inner for loops" << endl;
+          for (int u = -3; u < 3; u++) {
+            for (int v = -3; v <  3; v++) {
+              // cout << "Calculating SSD" << endl;
               // calculate SSD for this region
               *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
               sum = ssd->Red() + ssd->Green() + ssd->Blue();
@@ -668,7 +678,7 @@ frameProcessing(R2Image * otherImage)
     // } else if() {
       
     // }
-    //}
+    }
   }
 
   cout << "recentLocations size: " << recentLocations.size() << endl;
