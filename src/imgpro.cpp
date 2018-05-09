@@ -146,7 +146,7 @@ main(int argc, char **argv)
     else if (!strcmp(argv[i], "-graffiti")) {
       printf("Video processing started\n");
 
-      char inputName[100] = "../video_input/still_test/%07d.jpg";
+      char inputName[100] = "../video_input/wall_test/%07d.jpg";
       char outputName[100] = "../video_output/output%07d.jpg";
 
       R2Image *mainImage = new R2Image();
