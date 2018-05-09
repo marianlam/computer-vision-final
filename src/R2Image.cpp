@@ -615,17 +615,26 @@ Harris(double sigma)
     }
     index++;
   }
-  int rand_index = rand() % recentLocations.size();;
-  cout << "Recent Location Size" << recentLocations.size() << endl;
-  cout << "Rand Index"  << rand_index << endl;
-  //Feature chosenFeature = recentLocations[rand_index];
-  chosenIndexes[0]=rand_index;
+  // int rand_index = rand() % recentLocations.size();;
+  // cout << "Recent Location Size" << recentLocations.size() << endl;
+  // cout << "Rand Index: "  << rand_index << endl;
+  // //Feature chosenFeature = recentLocations[rand_index];
+  // chosenIndexes[0]=rand_index;
   
-  int rand_index2 = rand() % recentLocations.size();
-  chosenIndexes[1]=rand_index2;
-  // for(int i = 0; i < 150; i++){
-  //   chosenIndexes[i]=i;
-  // }
+  // int rand_index2 = rand() % recentLocations.size();
+  // chosenIndexes[1]=rand_index2;
+
+  // int rand_index3 = rand() % recentLocations.size();
+  // chosenIndexes[2]=rand_index3;
+
+  // cout << "Rand Index 2: " << rand_index2 << endl;
+  // cout << "Rand Index 3: " << rand_index3 << endl;
+  int rand_index;
+  for(int i = 0; i < 4; i++) {
+    rand_index = rand() % recentLocations.size();
+    chosenIndexes[i] =  rand_index;
+    cout << "random index: " << rand_index << endl;
+  }
 }
 
 void R2Image::
@@ -640,7 +649,7 @@ frameProcessing(R2Image * otherImage)
   vector<Feature> min_ssd;
   int outCount = 0; 
 
-  for(int a = 0; a < 2; a++){
+  for(int a = 0; a < 4; a++){
     px = recentLocations[chosenIndexes[a]].centerX;
     py = recentLocations[chosenIndexes[a]].centerY;
     min = 10000000;
@@ -684,7 +693,7 @@ frameProcessing(R2Image * otherImage)
   cout << "recentLocations size: " << recentLocations.size() << endl;
   cout << "min_ssd size: " << min_ssd.size() << endl;
 
-  // draw lines around tracked features
+  // mark tracked features
   for (int i = 0; i < min_ssd.size(); i++) {
     // for (int j = 0; j < 5; j++) {
       R2Pixel redPixel(1.0,0.0,0.0,1.0);

@@ -162,7 +162,7 @@ class R2Image {
   int width;
   int height;
   vector<Feature> recentLocations;
-  int chosenIndexes[2];
+  int chosenIndexes[4];
   //Feature * chosenFeature;
   R2Image* recentImage;
 };
