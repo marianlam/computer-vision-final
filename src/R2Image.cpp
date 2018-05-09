@@ -567,8 +567,8 @@ Harris(double sigma)
   vector<Feature> featureVec;
   // vector<Feature> recentLocations;
 
-  for (int i = 0; i < width; i++) {
-    for (int j = 0; j < height; j++) {
+  for (int i = 0.1*width; i < (width-(0.1*width)); i++) {
+    for (int j = 0.1*height; j < (height-(0.1*height)); j++) {
       temp.Pixel(i,j) = img1.Pixel(i,j)*img2.Pixel(i,j)-img3.Pixel(i,j)*img3.Pixel(i,j)
       -0.04*((img1.Pixel(i,j)+img2.Pixel(i,j))*(img1.Pixel(i,j)+img2.Pixel(i,j)));
 
@@ -592,7 +592,8 @@ Harris(double sigma)
   int index = 0;
   bool window_isEmpty;
   
-  while (counter < 150 && index < featureVec.size()) {
+  // && index < featureVec.size()
+  while (counter < 150) {
     currentFeature = featureVec[index];
     window_isEmpty = true;
     for (int i = -10; i < 10; i++) {
@@ -614,6 +615,15 @@ Harris(double sigma)
     }
     index++;
   }
+  cout << "Before Rand_Index" << endl;
+  int rand_index = rand() % recentLocations.size();;
+  cout << "Recent Location Size" << recentLocations.size() << endl;
+  cout << "Rand Index"  << rand_index << endl;
+  *chosenFeature = recentLocations[rand_index];
+  //chosenFeatures[0] = *chosenFeature;
+  //chosenFeatures.push_back(chosenFeature);
+  cout << "After Push_Back" << endl;
+
 }
 
 void R2Image::
@@ -628,19 +638,18 @@ frameProcessing(R2Image * otherImage)
   vector<Feature> min_ssd;
   int outCount = 0; 
   // vector<Feature> vec_copy;
-
-  for (int a = 0; a < recentLocations.size(); a++) {
-    px = recentLocations[a].centerX;
-    py = recentLocations[a].centerY;
+  //for (int a = 0; a < 1; a++) {
+    px = chosenFeature -> centerX;
+    py = chosenFeature -> centerY;
     min = 10000000;
     minX = 0;
     minY = 0;
     vector<Feature> regionVec;
-  
+      
 
-    if ((px + (-0.1 * width)) >= 0 && (px + (-0.1 * width)) <= width && (py + (-0.1 * height)) >= 0 && (py + (-0.1 * height)) <= height) {
-      for (int b = px + (-0.1 * width); b < px + (0.1 * width); b++) {
-        for (int c = py + (-0.1 * height); c < py + (0.1 * height); c++) {
+ if ((px + (-0.1 * width)) >= 0 && (px + (-0.1 * width)) <= width && (py + (-0.1 * height)) >= 0 && (py + (-0.1 * height)) <= height) {
+      for (int b = px+(-0.1 * width); b < px+(0.1 * width); b++) {
+        for (int c = py+(-0.1 * height); c < py+(0.1 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
           for (int u = -3; u <= 3; u++) {
             for (int v = -3; v <= 3; v++) {
@@ -658,49 +667,46 @@ frameProcessing(R2Image * otherImage)
           }
         }
       }
-      // Feature minimum = regionVec[0];
-      // for(int index = 1; index < regionVec.size(); index++) {
-      //   if(regionVec[index] < minimum){
-      //     minimum = regionVec[index];
-      //   }
-      // }
       // add pixel with smallest SSD to vector
       // vec_copy.push_back(Feature(px, py, 0));
       min_ssd.push_back(Feature(minX, minY, min));
-      //min_ssd.push_back(minimum);
-    // } else {
-
+    // } else if() {
+      
     // }
-    }
+    //}
   }
 
   cout << "recentLocations size: " << recentLocations.size() << endl;
   cout << "min_ssd size: " << min_ssd.size() << endl;
-  cout << "Out Count: " << outCount << endl;
 
   // draw lines around tracked features
   for (int i = 0; i < min_ssd.size(); i++) {
-    for (int j = 0; j < 5; j++) {
+    // for (int j = 0; j < 5; j++) {
+      R2Pixel redPixel(1.0,0.0,0.0,1.0);
       if ((min_ssd[i].centerX - 5 > 0)
       && (min_ssd[i].centerX + 5 < width)
       && (min_ssd[i].centerY - 5 > 0)
       && (min_ssd[i].centerY + 5 < height)) {
+        for(int u = -5; u < 5; u++){
+          for(int v = -5; v < 5; v++){
+            otherImage ->SetPixel(min_ssd[i].centerX+u,min_ssd[i].centerY+v,redPixel);
+          }
+        }
+    
+        // otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j, redPixel);
 
-        R2Pixel redPixel(1.0,0.0,0.0,1.0);
-        otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY + j, redPixel);
-        otherImage->SetPixel(min_ssd[i].centerX - 5, min_ssd[i].centerY - j, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j, redPixel);
 
-        otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY + j, redPixel);
-        otherImage->SetPixel(min_ssd[i].centerX + 5, min_ssd[i].centerY - j, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5, redPixel);
 
-        otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY - 5, redPixel);
-        otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY - 5, redPixel);
-
-        otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5, redPixel);
-        otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX + j, min_ssd[i].centerY + 5, redPixel);
+        // otherImage->SetPixel(min_ssd[i].centerX - j, min_ssd[i].centerY + 5, redPixel);
 
       }
-    }
+    // }
   }
 
   // update recentLocations vector (a list of the most recently tracked features)
@@ -799,7 +805,7 @@ blendOtherImageTranslated(R2Image * otherImage)
           for (int u = -3; u <= 3; u++) {
             for (int v = -3; v <= 3; v++) {
               // calculate SSD for this region
-              *ssd += (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v)) * (otherImage->Pixel(px+u, py+v) - Pixel(b+u,c+v));
+              *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
               sum = ssd->Red() + ssd->Green() + ssd->Blue();
             }
           }
