@@ -162,10 +162,8 @@ class R2Image {
   int width;
   int height;
   vector<Feature> recentLocations;
-  int chosenIndexes[150];
-  //vector<int> chosenIndexes;
-  //Feature * chosenFeature;
   R2Image* recentImage;
+  double** bestHMatrix; 
 };
 
 

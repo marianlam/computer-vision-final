@@ -657,7 +657,7 @@ frameProcessing(R2Image * otherImage)
     }
   }
 
-  // mark tracked features
+  //mark tracked features
   for (int i = 0; i < min_ssd.size(); i++) {
       R2Pixel redPixel(1.0,0.0,0.0,1.0);
       if ((min_ssd[i].centerX - 5 > 0)
@@ -673,6 +673,172 @@ frameProcessing(R2Image * otherImage)
   }
 
   // run RANSAC and get optimal H transformation matrix
+  int rand_index;
+
+  int inliers;
+  int N = 0;
+  int max_inliers = 0;
+
+  int x1, x2, x3, x4;
+  int y1, y2, y3, y4;
+  int xd1, xd2, xd3, xd4;
+  int yd1, yd2, yd3, yd4;
+
+  double** matrixH;
+  double** matrixH_optimal;
+  vector<int> vectorA;
+  vectorA.push_back(0);
+  vectorA.push_back(0);
+  vectorA.push_back(0);
+
+  vector<double> vectorHA;
+  vectorHA.push_back(0);
+  vectorHA.push_back(0);
+
+  double HA_x;
+  double HA_y;
+  double HA_z;
+  double distance;
+
+  // loop N (1000) number of times
+  while (N <= 1000) {
+    inliers = 0;
+
+    // randomly choose 4 points
+    rand_index = rand() % min_ssd.size();
+    x1 = vec_copy[rand_index].centerX;
+    y1 = vec_copy[rand_index].centerY;
+    xd1 = min_ssd[rand_index].centerX;
+    yd1 = min_ssd[rand_index].centerY;
+
+    rand_index = rand() % min_ssd.size();
+    x2 = vec_copy[rand_index].centerX;
+    y2 = vec_copy[rand_index].centerY;
+    xd2 = min_ssd[rand_index].centerX;
+    yd2 = min_ssd[rand_index].centerY;
+
+    rand_index = rand() % min_ssd.size();
+    x3 = vec_copy[rand_index].centerX;
+    y3 = vec_copy[rand_index].centerY;
+    xd3 = min_ssd[rand_index].centerX;
+    yd3 = min_ssd[rand_index].centerY;
+
+    rand_index = rand() % min_ssd.size();
+    x4 = vec_copy[rand_index].centerX;
+    y4 = vec_copy[rand_index].centerY;
+    xd4 = min_ssd[rand_index].centerX;
+    yd4 = min_ssd[rand_index].centerY;
+
+    vector<int> x;
+    vector<int> y;
+    vector<int> xd;
+    vector<int> yd;
+
+    x.push_back(x1);
+    x.push_back(x2);
+    x.push_back(x3);
+    x.push_back(x4);
+
+    y.push_back(y1);
+    y.push_back(y2);
+    y.push_back(y3);
+    y.push_back(y4);
+
+    xd.push_back(xd1);
+    xd.push_back(xd2);
+    xd.push_back(xd3);
+    xd.push_back(xd4);
+
+    yd.push_back(yd1);
+    yd.push_back(yd2);
+    yd.push_back(yd3);
+    yd.push_back(yd4);
+
+    // estimate and get H matrix
+    matrixH = svdTest(x, y, xd, yd, 4);
+
+    // loop over all A->B matches
+    for (int i = 0; i < min_ssd.size(); i++) {
+      // matrix multiplication to get HA
+      vectorA[0] = vec_copy[i].centerX;
+      vectorA[1] = vec_copy[i].centerY;
+      vectorA[2] = 1;
+
+      HA_x = matrixH[1][1]*vectorA[0] + matrixH[1][2]*vectorA[1] + matrixH[1][3]*vectorA[2];
+      HA_y = matrixH[2][1]*vectorA[0] + matrixH[2][2]*vectorA[1] + matrixH[2][3]*vectorA[2];
+      HA_z = matrixH[3][1]*vectorA[0] + matrixH[3][2]*vectorA[1] + matrixH[3][3]*vectorA[2];
+
+      HA_x = HA_x/HA_z;
+      HA_y = HA_y/HA_z;
+
+      vectorHA[0] = HA_x;
+      vectorHA[1] = HA_y;
+
+      // find the distance between HA and B
+      distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+
+      // if distance is beneath threshold, increment counter
+      if (distance <= 5.0) {
+        inliers++;
+      }
+    }
+    // keep track of H matrix with the most supporters
+    if (inliers > max_inliers) {
+      max_inliers = inliers;
+      matrixH_optimal = matrixH;
+    }
+    N++;
+  }
+
+  vector<int> optimal_x;
+  vector<int> optimal_y;
+  vector<int> optimal_xd;
+  vector<int> optimal_yd;
+
+  // re-calculate H matrix with ALL good points
+  for (int i = 0; i < min_ssd.size(); i++) {
+    vectorA[0] = vec_copy[i].centerX;
+    vectorA[1] = vec_copy[i].centerY;
+    vectorA[2] = 1;
+
+    HA_x = matrixH_optimal[1][1]*vectorA[0] + matrixH_optimal[1][2]*vectorA[1] + matrixH_optimal[1][3]*vectorA[2];
+    HA_y = matrixH_optimal[2][1]*vectorA[0] + matrixH_optimal[2][2]*vectorA[1] + matrixH_optimal[2][3]*vectorA[2];
+    HA_z = matrixH_optimal[3][1]*vectorA[0] + matrixH_optimal[3][2]*vectorA[1] + matrixH_optimal[3][3]*vectorA[2];
+
+    HA_x = HA_x/HA_z;
+    HA_y = HA_y/HA_z;
+
+    vectorHA[0] = HA_x;
+    vectorHA[1] = HA_y;
+
+    distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+
+    if (distance <= 5.0) {
+      optimal_x.push_back(vec_copy[i].centerX);
+      optimal_y.push_back(vec_copy[i].centerY);
+      optimal_xd.push_back(min_ssd[i].centerX);
+      optimal_yd.push_back(min_ssd[i].centerY);
+    }
+  }
+
+  // draw lines
+  for (int i = 0; i < optimal_x.size(); i++) {
+    otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
+  }
+
+  matrixH_optimal = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
+
+  cout << "Optimal Number of Inliers: " << max_inliers << endl;
+
+  cout << "\nMatrix H: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << matrixH_optimal[i][j] << "\t";
+    }
+    cout << "\n";
+  }
+
+  bestHMatrix = matrixH_optimal;
 
   // warp graffiti image
 
@@ -958,8 +1124,8 @@ blendOtherImageHomography(R2Image * otherImage)
   // compute the matching homography, and blend the transformed "otherImage" into this image with a 50% opacity.
 
   // have previous function return best H matrix (describes transformation from A->B)
-  double** matrixH = blendOtherImageTranslated(otherImage);
-
+  //double** matrixH = bestHMatrix;
+  
   // calculate inverse of H matrix (B->A)
   double copy[3][3];
   //double inverseMatrixH[3][3];
@@ -968,10 +1134,10 @@ blendOtherImageHomography(R2Image * otherImage)
   // create copy of matrix H
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      copy[i][j] = matrixH[i+1][j+1];
+      copy[i][j] = bestHMatrix[i+1][j+1];
     }
   }
-
+  cout << "Error 1" << endl;
   // // find the determinant
   // for (int i = 0; i < 3; i++) {
   //   determinant = determinant + (copy[0][i] * (copy[1][(i+1)%3] * copy[2][(i+2)%3] - copy[1][(i+2)%3] * copy[2][(i+1)%3]));
@@ -1007,26 +1173,39 @@ blendOtherImageHomography(R2Image * otherImage)
   R2Pixel *white = new R2Pixel(1.0,1.0,1.0,1.0);
 
   // apply H matrix
-  for (int i = 0; i < width; i++) {
-    for (int j = 0; j < height; j++) {
+  for (int i = 1; i < width; i++) {
+    for (int j = 1; j < height; j++) {
 
       x = copy[0][0]*i + copy[0][1]*j + copy[0][2]*1;
       y = copy[1][0]*i + copy[1][1]*j + copy[1][2]*1;
       z = copy[2][0]*i + copy[2][1]*j + copy[2][2]*1;
 
+      // x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*j + bestHMatrix[1][3];
+      // y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
+      // z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
+
+
+
       x = x/z;
       y = y/z;
-
+      cout << "Error 2" << endl;
       if ((x > 0 && x < width) && (y > 0 && y < height)) {
 
         imageB_pixel = otherImage->Pixel(i,j);
         blended_pixel = (imageB_pixel + temp.Pixel(x,y)) / 2;
         SetPixel(i,j,blended_pixel);
+        cout << "Error 3" << endl;
       } else {
         SetPixel(i,j,*white);
       }
     }
   }
+
+  for(int i = 1; i <= 3; i++){
+    delete[] bestHMatrix[i];
+  }
+
+  delete[] bestHMatrix;
 }
 
 ////////////////////////////////////////////////////////////////////////

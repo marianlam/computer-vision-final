@@ -11,6 +11,8 @@
         "ios": "cpp",
         "iostream": "cpp",
         "ostream": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "__bit_reference": "cpp",
+        "__string": "cpp"
     }
 }
