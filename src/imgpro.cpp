@@ -148,8 +148,10 @@ main(int argc, char **argv)
 
       char inputName[100] = "../video_input/wall_test/%07d.jpg";
       char outputName[100] = "../video_output/output%07d.jpg";
+      char graffitiFileName[100] = "../paint_splatter.jpg";
 
       R2Image *mainImage = new R2Image();
+      R2Image *graffitiImage = new R2Image();
       //char currentFilename[100];
       char *currentFilename = new char[100];
       //char currentOutputFilename[100];
@@ -162,6 +164,12 @@ main(int argc, char **argv)
       sprintf(currentFilename, inputName, 0);
       if (!mainImage->Read(currentFilename)) {
         fprintf(stderr, "Unable to read first image\n");
+        exit(-1);
+      }
+
+      // read in graffiti image
+      if (!graffitiImage->Read(graffitiFileName)) {
+        fprintf(stderr, "Unable to read graffiti image\n");
         exit(-1);
       }
 
@@ -192,6 +200,7 @@ main(int argc, char **argv)
         // here you could call
         //
         mainImage->frameProcessing(currentImage);
+        currentImage->blendOtherImageHomography(graffitiImage);
         //
         // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
 

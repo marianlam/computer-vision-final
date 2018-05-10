@@ -962,8 +962,8 @@ blendOtherImageHomography(R2Image * otherImage)
 
   // calculate inverse of H matrix (B->A)
   double copy[3][3];
-  double inverseMatrixH[3][3];
-  double determinant = 0.0;
+  //double inverseMatrixH[3][3];
+  //double determinant = 0.0;
 
   // create copy of matrix H
   for (int i = 0; i < 3; i++) {
