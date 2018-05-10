@@ -541,7 +541,6 @@ Harris(double sigma)
   // Harris corner detector. Make use of the previously developed filters, such as the Gaussian blur filter
   // Output should be 50% grey at flat regions, white at corners and black/dark near edges
   recentLocations.clear();
-  // recentImage = new R2Image(*this);  
 
   R2Image img1(*this);
   R2Image img2(*this);
@@ -565,10 +564,9 @@ Harris(double sigma)
   img3.Blur(sigma);
 
   vector<Feature> featureVec;
-  // vector<Feature> recentLocations;
 
-  for (int i = 0.1*width; i < (width-(0.1*width)); i++) {
-    for (int j = 0.1*height; j < (height-(0.1*height)); j++) {
+  for (int i = 0.1 * width; i < (width - (0.1 * width)); i++) {
+    for (int j = 0.1 * height; j < (height - (0.1 * height)); j++) {
       temp.Pixel(i,j) = img1.Pixel(i,j)*img2.Pixel(i,j)-img3.Pixel(i,j)*img3.Pixel(i,j)
       -0.04*((img1.Pixel(i,j)+img2.Pixel(i,j))*(img1.Pixel(i,j)+img2.Pixel(i,j)));
 
@@ -585,15 +583,14 @@ Harris(double sigma)
   // sort vector in descending order
   sort(featureVec.rbegin(), featureVec.rend());
 
-  // add 150 elements with high harris scores to new vector (recentLocations)
+  // add 150 elements with highest harris scores to recentLocations vector
   R2Pixel *redPixel = new R2Pixel(1,0,0,0);
   Feature currentFeature;
   int counter = 0;
   int index = 0;
   bool window_isEmpty;
   
-  // && index < featureVec.size()
-  while (counter < 150) {
+    while (counter < 150) {
     currentFeature = featureVec[index];
     window_isEmpty = true;
     for (int i = -10; i < 10; i++) {
@@ -615,26 +612,6 @@ Harris(double sigma)
     }
     index++;
   }
-  // int rand_index = rand() % recentLocations.size();;
-  // cout << "Recent Location Size" << recentLocations.size() << endl;
-  // cout << "Rand Index: "  << rand_index << endl;
-  // //Feature chosenFeature = recentLocations[rand_index];
-  // chosenIndexes[0]=rand_index;
-  
-  // int rand_index2 = rand() % recentLocations.size();
-  // chosenIndexes[1]=rand_index2;
-
-  // int rand_index3 = rand() % recentLocations.size();
-  // chosenIndexes[2]=rand_index3;
-
-  // cout << "Rand Index 2: " << rand_index2 << endl;
-  // cout << "Rand Index 3: " << rand_index3 << endl;
-  // int rand_index;
-  // for(int i = 0; i < recentLocations.size(); i++) {
-  //   rand_index = rand() % recentLocations.size();
-  //   chosenIndexes[i] = rand_index;
-  //   cout << "random index: " << rand_index << endl;
-  // }
 }
 
 void R2Image::
@@ -647,7 +624,7 @@ frameProcessing(R2Image * otherImage)
   int minX;
   int minY;
   vector<Feature> min_ssd;
-  int outCount = 0; 
+  vector<Feature> vec_copy;
 
   for(int a = 0; a < recentLocations.size(); a++) {
     px = recentLocations[a].centerX;
@@ -655,25 +632,18 @@ frameProcessing(R2Image * otherImage)
     min = 100000;
     minX = 0;
     minY = 0;
-    // vector<Feature> regionVec;
-    // cout << "In for loop" << endl;
       
- if ((px + (-0.1 * width)) >= 0 && (px + (-0.1 * width)) < width && (py + (-0.1 * height)) >= 0 && (py + (-0.1 * height)) < height) {
-  //  cout << "In if loop" << endl;
-      // printf("after the if statement\n");
-      for (int b = px+(-0.1 * width); b < px+(0.1 * width); b++) {
-        for (int c = py+(-0.1 * height); c < py+(0.1 * height); c++) {
+ if ((px + (-0.01 * width)) >= 0 && (px + (-0.01 * width)) < width && (py + (-0.01 * height)) >= 0 && (py + (-0.01 * height)) < height) {
+      for (int b = px + (-0.025 * width); b < px + (0.025 * width); b++) {
+        for (int c = py + (-0.025 * height); c < py + (0.025 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
-          // cout << "in inner for loops" << endl;
           for (int u = -3; u < 3; u++) {
             for (int v = -3; v < 3; v++) {
-              // cout << "Calculating SSD" << endl;
               // calculate SSD for this region
               *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
               sum = ssd->Red() + ssd->Green() + ssd->Blue();
             }
           }
-          //regionVec.push_back(Feature(b,c,*ssd));
           if (sum < min) {
             min = sum;
             minX = b;
@@ -681,19 +651,11 @@ frameProcessing(R2Image * otherImage)
           }
         }
       }
-      // printf("after calc ssd\n");
       // add pixel with smallest SSD to vector
-      // vec_copy.push_back(Feature(px, py, 0));
+      vec_copy.push_back(Feature(px, py, 0));
       min_ssd.push_back(Feature(minX, minY, min));
-    // } else if() {
-      
-    // }
     }
-    // printf("after pushing on min_ssd\n");
   }
-
-  cout << "recentLocations size: " << recentLocations.size() << endl;
-  cout << "min_ssd size: " << min_ssd.size() << endl;
 
   // mark tracked features
   for (int i = 0; i < min_ssd.size(); i++) {
@@ -708,18 +670,12 @@ frameProcessing(R2Image * otherImage)
           }
         }
       }
-    // }
   }
 
-  // update recentLocations vector (a list of the most recently tracked features)
-  // recentLocations.clear();
-  // for (int i = 0; i < min_ssd.size(); i++) {
-  //   recentLocations.push_back(min_ssd[i]);
-  // }
-  
-  // for (int i = 0; i < recentLocations.size(); i++) {
-  //   cout << "recentLocations[" << i << "] x: " << recentLocations[i].centerX << "y: " << recentLocations[i].centerY << endl;
-  // }
+  // run RANSAC and get optimal H transformation matrix
+
+  // warp graffiti image
+
 }
 
 void R2Image::
@@ -785,8 +741,6 @@ blendOtherImageTranslated(R2Image * otherImage)
   // find at least 100 features on this image, and another 100 on the "otherImage". Based on these,
   // compute the matching translation (pixel precision is OK), and blend the translated "otherImage"
   // into this image with a 50% opacity.
-
-  // vector<Feature> recentLocations = otherImage->Harris(2.0);
 
   int px;
   int py;
@@ -1018,27 +972,27 @@ blendOtherImageHomography(R2Image * otherImage)
     }
   }
 
-  // find the determinant
-  for (int i = 0; i < 3; i++) {
-    determinant = determinant + (copy[0][i] * (copy[1][(i+1)%3] * copy[2][(i+2)%3] - copy[1][(i+2)%3] * copy[2][(i+1)%3]));
-  }
-  cout << "\nDeterminant: " << determinant << endl;;
+  // // find the determinant
+  // for (int i = 0; i < 3; i++) {
+  //   determinant = determinant + (copy[0][i] * (copy[1][(i+1)%3] * copy[2][(i+2)%3] - copy[1][(i+2)%3] * copy[2][(i+1)%3]));
+  // }
+  // cout << "\nDeterminant: " << determinant << endl;;
 
-  // calculate the inverse
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      inverseMatrixH[i][j] = ((copy[(j+1)%3][(i+1)%3] * copy[(j+2)%3][(i+2)%3]) - (copy[(j+1)%3][(i+2)%3] * copy[(j+2)%3][(i+1)%3])) / determinant;
-    }
-  }
+  // // calculate the inverse
+  // for (int i = 0; i < 3; i++) {
+  //   for (int j = 0; j < 3; j++) {
+  //     inverseMatrixH[i][j] = ((copy[(j+1)%3][(i+1)%3] * copy[(j+2)%3][(i+2)%3]) - (copy[(j+1)%3][(i+2)%3] * copy[(j+2)%3][(i+1)%3])) / determinant;
+  //   }
+  // }
 
-  cout << "\nMatrix H Inverse:" << endl;
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      cout << inverseMatrixH[i][j] << " ";
-    }
-    cout << "\n";
-  }
-  cout << endl;
+  // cout << "\nMatrix H Inverse:" << endl;
+  // for (int i = 0; i < 3; i++) {
+  //   for (int j = 0; j < 3; j++) {
+  //     cout << inverseMatrixH[i][j] << " ";
+  //   }
+  //   cout << "\n";
+  // }
+  // cout << endl;
 
   // make copy of image
   R2Image temp(*this);
