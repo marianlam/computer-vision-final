@@ -634,11 +634,11 @@ frameProcessing(R2Image * otherImage)
     minY = 0;
       
  if ((px + (-0.01 * width)) >= 0 && (px + (-0.01 * width)) < width && (py + (-0.01 * height)) >= 0 && (py + (-0.01 * height)) < height) {
-      for (int b = px + (-0.025 * width); b < px + (0.025 * width); b++) {
-        for (int c = py + (-0.025 * height); c < py + (0.025 * height); c++) {
+      for (int b = px + (-0.1 * width); b < px + (0.1 * width); b++) {
+        for (int c = py + (-0.1 * height); c < py + (0.1 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
-          for (int u = -3; u < 3; u++) {
-            for (int v = -3; v < 3; v++) {
+          for (int u = -6; u < 6; u++) {
+            for (int v = -6; v < 6; v++) {
               // calculate SSD for this region
               *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
               sum = ssd->Red() + ssd->Green() + ssd->Blue();
@@ -826,7 +826,7 @@ frameProcessing(R2Image * otherImage)
     otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
   }
 
-  matrixH_optimal = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
+  bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
 
   cout << "Optimal Number of Inliers: " << max_inliers << endl;
 
@@ -837,11 +837,6 @@ frameProcessing(R2Image * otherImage)
     }
     cout << "\n";
   }
-
-  bestHMatrix = matrixH_optimal;
-
-  // warp graffiti image
-
 }
 
 void R2Image::
@@ -866,6 +861,13 @@ Sharpen()
 
 void R2Image::line(int x0, int x1, int y0, int y1, float r, float g, float b)
 {
+  if (x0 > 3 && x0 < width - 3 && y0 > 3 && y0 < height - 3) {
+    for (int x = x0 - 3; x <= x0 + 3; x++) {
+      for (int y = y0 - 3; y <= y0 + 3; y++) {
+        Pixel(x,y).Reset(r,g,b,1.0);
+      }
+    }
+  }
   if (x0 > x1) {
     int x = y1;
     y1 = y0;
@@ -890,13 +892,6 @@ void R2Image::line(int x0, int x1, int y0, int y1, float r, float g, float b)
       if (deltay > 0) y = y + 1;
       else y = y - 1;
       error = error - 1.0;
-    }
-  }
-  if (x0 > 3 && x0 < width - 3 && y0 > 3 && y0 < height - 3) {
-    for (int x = x0 - 3; x <= x0 + 3; x++) {
-      for (int y = y0 - 3; y <= y0 + 3; y++) {
-        Pixel(x,y).Reset(r,g,b,1.0);
-      }
     }
   }
 }
@@ -1123,42 +1118,7 @@ blendOtherImageHomography(R2Image * otherImage)
   // find at least 100 features on this image, and another 100 on the "otherImage". Based on these,
   // compute the matching homography, and blend the transformed "otherImage" into this image with a 50% opacity.
 
-  // have previous function return best H matrix (describes transformation from A->B)
-  //double** matrixH = bestHMatrix;
-  
-  // calculate inverse of H matrix (B->A)
-  double copy[3][3];
-  //double inverseMatrixH[3][3];
-  //double determinant = 0.0;
-
-  // create copy of matrix H
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      copy[i][j] = bestHMatrix[i+1][j+1];
-    }
-  }
   cout << "Error 1" << endl;
-  // // find the determinant
-  // for (int i = 0; i < 3; i++) {
-  //   determinant = determinant + (copy[0][i] * (copy[1][(i+1)%3] * copy[2][(i+2)%3] - copy[1][(i+2)%3] * copy[2][(i+1)%3]));
-  // }
-  // cout << "\nDeterminant: " << determinant << endl;;
-
-  // // calculate the inverse
-  // for (int i = 0; i < 3; i++) {
-  //   for (int j = 0; j < 3; j++) {
-  //     inverseMatrixH[i][j] = ((copy[(j+1)%3][(i+1)%3] * copy[(j+2)%3][(i+2)%3]) - (copy[(j+1)%3][(i+2)%3] * copy[(j+2)%3][(i+1)%3])) / determinant;
-  //   }
-  // }
-
-  // cout << "\nMatrix H Inverse:" << endl;
-  // for (int i = 0; i < 3; i++) {
-  //   for (int j = 0; j < 3; j++) {
-  //     cout << inverseMatrixH[i][j] << " ";
-  //   }
-  //   cout << "\n";
-  // }
-  // cout << endl;
 
   // make copy of image
   R2Image temp(*this);
@@ -1173,28 +1133,26 @@ blendOtherImageHomography(R2Image * otherImage)
   R2Pixel *white = new R2Pixel(1.0,1.0,1.0,1.0);
 
   // apply H matrix
-  for (int i = 1; i < width; i++) {
-    for (int j = 1; j < height; j++) {
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
 
-      x = copy[0][0]*i + copy[0][1]*j + copy[0][2]*1;
-      y = copy[1][0]*i + copy[1][1]*j + copy[1][2]*1;
-      z = copy[2][0]*i + copy[2][1]*j + copy[2][2]*1;
-
-      // x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*j + bestHMatrix[1][3];
-      // y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
-      // z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
-
-
+      x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*j + bestHMatrix[1][3];
+      y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
+      z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
 
       x = x/z;
       y = y/z;
+
       cout << "Error 2" << endl;
+      
       if ((x > 0 && x < width) && (y > 0 && y < height)) {
 
         imageB_pixel = otherImage->Pixel(i,j);
         blended_pixel = (imageB_pixel + temp.Pixel(x,y)) / 2;
         SetPixel(i,j,blended_pixel);
+
         cout << "Error 3" << endl;
+
       } else {
         SetPixel(i,j,*white);
       }
@@ -1204,7 +1162,6 @@ blendOtherImageHomography(R2Image * otherImage)
   for(int i = 1; i <= 3; i++){
     delete[] bestHMatrix[i];
   }
-
   delete[] bestHMatrix;
 }
 
