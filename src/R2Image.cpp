@@ -833,7 +833,7 @@ frameProcessing(R2Image * otherImage)
   cout << "\nMatrix H: " << endl;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 3; j++) {
-      cout << matrixH_optimal[i][j] << "\t";
+      cout << bestHMatrix[i][j] << "\t";
     }
     cout << "\n";
   }
@@ -1133,12 +1133,26 @@ blendOtherImageHomography(R2Image * otherImage)
   R2Pixel *white = new R2Pixel(1.0,1.0,1.0,1.0);
 
   // apply H matrix
-  for (int i = 0; i < width; i++) {
-    for (int j = 0; j < height; j++) {
+  for (double i = 0; i < width; i++) {
+    for (double j = 0; j < height; j++) {
+      cout << "Error 1.5" << endl;
 
-      x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*j + bestHMatrix[1][3];
-      y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
-      z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
+      cout << "\nMatrix H: " << endl;
+      for (int i = 1; i <= 3; i++) {
+        for (int j = 1; j <= 3; j++) {
+         cout << bestHMatrix[i][j] << "\t";
+        }   
+      cout << "\n";
+      }
+
+      x = bestHMatrix[1][1] + bestHMatrix[1][2] + bestHMatrix[1][3];
+      
+      // y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
+      // z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
+
+     cout << "x: " << x << endl;
+     cout << "y: " << y << endl;
+     cout << "z: " << z << endl;
 
       x = x/z;
       y = y/z;
