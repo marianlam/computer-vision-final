@@ -181,6 +181,7 @@ main(int argc, char **argv)
       int end = 88;
       for (int i = 1; i < end; i++)
       {
+        double** bestHMatrix; 
         R2Image *currentImage = new R2Image();
         if (!currentImage) {
           fprintf(stderr, "Unable to allocate image %d\n",i);
@@ -199,8 +200,8 @@ main(int argc, char **argv)
         // currentImage->Brighten((float)i/(float)end);
         // here you could call
         //
-        mainImage->frameProcessing(currentImage);
-        //currentImage->blendOtherImageHomography(graffitiImage);
+        bestHMatrix = mainImage->frameProcessing(currentImage);
+        currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
         //
         // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
 
@@ -301,7 +302,7 @@ main(int argc, char **argv)
       CheckOption(*argv, argc, 2);
       R2Image *other_image = new R2Image(argv[1]);
       argv += 2, argc -= 2;
-      image->blendOtherImageHomography(other_image);
+      //image->blendOtherImageHomography(other_image);
       delete other_image;
     }
     else {

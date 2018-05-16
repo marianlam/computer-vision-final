@@ -614,7 +614,7 @@ Harris(double sigma)
   }
 }
 
-void R2Image::
+double** R2Image::
 frameProcessing(R2Image * otherImage)
 {
   int px;
@@ -828,15 +828,16 @@ frameProcessing(R2Image * otherImage)
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
 
-  cout << "Optimal Number of Inliers: " << max_inliers << endl;
+  // cout << "Optimal Number of Inliers: " << max_inliers << endl;
 
-  cout << "\nMatrix H: " << endl;
-  for (int i = 1; i <= 3; i++) {
-    for (int j = 1; j <= 3; j++) {
-      cout << bestHMatrix[i][j] << "\t";
-    }
-    cout << "\n";
-  }
+  // cout << "\nMatrix H: " << endl;
+  // for (int i = 1; i <= 3; i++) {
+  //   for (int j = 1; j <= 3; j++) {
+  //     cout << bestHMatrix[i][j] << "\t";
+  //   }
+  //   cout << "\n";
+  // }
+  return bestHMatrix;
 }
 
 void R2Image::
@@ -1113,12 +1114,11 @@ blendOtherImageTranslated(R2Image * otherImage)
 }
 
 void R2Image::
-blendOtherImageHomography(R2Image * otherImage)
+blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
 {
   // find at least 100 features on this image, and another 100 on the "otherImage". Based on these,
   // compute the matching homography, and blend the transformed "otherImage" into this image with a 50% opacity.
 
-  cout << "Error 1" << endl;
 
   // make copy of image
   R2Image temp(*this);
@@ -1132,51 +1132,105 @@ blendOtherImageHomography(R2Image * otherImage)
   R2Pixel blended_pixel;
   R2Pixel *white = new R2Pixel(1.0,1.0,1.0,1.0);
 
-  // apply H matrix
-  for (double i = 0; i < width; i++) {
-    for (double j = 0; j < height; j++) {
-      cout << "Error 1.5" << endl;
+  double determinant = 0; 
+  double** minorMatrix = dmatrix(1,3,1,3);
+  
 
-      cout << "\nMatrix H: " << endl;
-      for (int i = 1; i <= 3; i++) {
-        for (int j = 1; j <= 3; j++) {
-         cout << bestHMatrix[i][j] << "\t";
-        }   
-      cout << "\n";
-      }
+  cout << "\nMatrix H: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << bestHMatrix[i][j] << "\t";
+    }
+    cout << "\n";
+  }
 
-      x = bestHMatrix[1][1] + bestHMatrix[1][2] + bestHMatrix[1][3];
-      
-      // y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
-      // z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
+  minorMatrix[1][1]=(bestHMatrix[2][2]*bestHMatrix[3][3])-(bestHMatrix[2][3]*bestHMatrix[3][2]);                //***********************************
+  minorMatrix[1][2]=-1*((bestHMatrix[2][1]*bestHMatrix[3][3])-(bestHMatrix[2][3]*bestHMatrix[3][1]));        //                                                                 *
+  minorMatrix[1][3]=(bestHMatrix[2][1]*bestHMatrix[3][2])-(bestHMatrix[2][2]*bestHMatrix[3][1]);                //                                                                 *
+  minorMatrix[2][1]=-1*((bestHMatrix[1][2]*bestHMatrix[3][3])-(bestHMatrix[3][2]*bestHMatrix[1][3]));        //                                                                 *
+  minorMatrix[2][2]=(bestHMatrix[1][1]*bestHMatrix[3][3])-(bestHMatrix[1][3]*bestHMatrix[3][1]);                // CALCULATION OF COFACTOR          *
+  minorMatrix[2][3]=-1*((bestHMatrix[1][1]*bestHMatrix[3][2])-(bestHMatrix[1][2]*bestHMatrix[3][1]));        //                                                                 *
+  minorMatrix[3][1]=bestHMatrix[1][2]*bestHMatrix[2][3]-bestHMatrix[1][3]*bestHMatrix[2][2];                //                                                                 *
+  minorMatrix[3][2]=-1*((bestHMatrix[1][1]*bestHMatrix[2][3])-(bestHMatrix[1][3]*bestHMatrix[2][1]));        //                                                                 *
+  minorMatrix[3][3]=(bestHMatrix[1][1]*bestHMatrix[2][2])-(bestHMatrix[1][2]*bestHMatrix[2][1]);                //***********************************
 
-     cout << "x: " << x << endl;
-     cout << "y: " << y << endl;
-     cout << "z: " << z << endl;
 
-      x = x/z;
-      y = y/z;
+  determinant = (bestHMatrix[1][1]*minorMatrix[1][1])
+               -(bestHMatrix[1][2]*minorMatrix[1][2])
+               +(bestHMatrix[1][3]*minorMatrix[1][3]);
+  
+  cout<< "Determinant: " << determinant << endl;
 
-      cout << "Error 2" << endl;
-      
-      if ((x > 0 && x < width) && (y > 0 && y < height)) {
-
-        imageB_pixel = otherImage->Pixel(i,j);
-        blended_pixel = (imageB_pixel + temp.Pixel(x,y)) / 2;
-        SetPixel(i,j,blended_pixel);
-
-        cout << "Error 3" << endl;
-
-      } else {
-        SetPixel(i,j,*white);
-      }
+  double** adjointMatrix = dmatrix(1,3,1,3);
+  for(int i = 1 ;  i <= 3; i++){
+    for(int j = 1; j <= 3; j++){
+      adjointMatrix[i][j] = minorMatrix[j][i];
     }
   }
 
-  for(int i = 1; i <= 3; i++){
-    delete[] bestHMatrix[i];
+  double** inverseMatrix = dmatrix(1,3,1,3);
+   for(int i = 1 ;  i <= 3; i++){
+    for(int j = 1; j <= 3; j++){
+      inverseMatrix[i][j] = adjointMatrix[i][j] * (1/determinant);
+    }
   }
-  delete[] bestHMatrix;
+
+  cout << "\nInverse Matrix H: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << inverseMatrix[i][j] << "\t";
+    }
+    cout << "\n";
+  }
+
+  for(double i = 0; i < otherImage -> width; i++){
+    for(double j=0; j < otherImage -> height; j++){
+       x = inverseMatrix[1][1]*i + inverseMatrix[1][2]*j + inverseMatrix[1][3];
+       y = inverseMatrix[2][1]*i + inverseMatrix[2][2]*j + inverseMatrix[2][3];
+       z = inverseMatrix[3][1]*i + inverseMatrix[3][2]*j + inverseMatrix[3][3];
+
+       x = x/z; 
+       y = y/z; 
+
+       if ((x > 0 && x < width) && (y > 0 && y < height)){
+         imageB_pixel = otherImage -> Pixel(i,j);
+         blended_pixel = (imageB_pixel + temp.Pixel(x,y))/2;
+
+         SetPixel(x,y,blended_pixel);
+
+       }
+    }
+  }
+
+  
+
+  // apply H matrix
+  // for (double i = 0; i < width; i++) {
+  //   for (double j = 0; j < height; j++) {
+
+
+  //     x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*i + bestHMatrix[1][3];
+  //     y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
+  //     z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
+
+
+  //     x = x/z;
+  //     y = y/z;
+      
+  //     if ((x > 0 && x < width) && (y > 0 && y < height)) {
+
+  //       imageB_pixel = otherImage->Pixel(i,j);
+  //       blended_pixel = (imageB_pixel + temp.Pixel(x,y)) / 2;
+  //       SetPixel(i,j,blended_pixel);
+
+  //     }
+  //     // } else {
+  //     //   SetPixel(i,j,*white);
+  //     // }
+  //   }
+  // }
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////

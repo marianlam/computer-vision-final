@@ -136,10 +136,10 @@ class R2Image {
 
   // further operations
   double** blendOtherImageTranslated(R2Image * otherImage);
-  void blendOtherImageHomography(R2Image * otherImage);
+  void blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix);
 
   // Video Processing
-  void frameProcessing(R2Image * otherImage);
+  double** frameProcessing(R2Image * otherImage);
 
   // File reading/writing
   int Read(const char *filename);
