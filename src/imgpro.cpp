@@ -201,7 +201,7 @@ main(int argc, char **argv)
         // here you could call
         //
         bestHMatrix = mainImage->frameProcessing(currentImage);
-        currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
+        //currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
         //
         // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
 
