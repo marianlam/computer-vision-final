@@ -678,6 +678,8 @@ frameProcessing(R2Image * otherImage)
   int inliers;
   int N = 0;
   int max_inliers = 0;
+  vector<Feature> vecInliers; 
+  vector<Feature> vecMaxInliers; 
 
   int x1, x2, x3, x4;
   int y1, y2, y3, y4;
@@ -780,12 +782,15 @@ frameProcessing(R2Image * otherImage)
       // if distance is beneath threshold, increment counter
       if (distance <= 5.0) {
         inliers++;
+        vecInliers.push_back(Feature(HA_x,HA_y,0));
+
       }
     }
     // keep track of H matrix with the most supporters
     if (inliers > max_inliers) {
       max_inliers = inliers;
       matrixH_optimal = matrixH;
+      vecMaxInliers = vecInliers;
     }
     N++;
   }
@@ -796,7 +801,7 @@ frameProcessing(R2Image * otherImage)
   vector<int> optimal_yd;
 
   // re-calculate H matrix with ALL good points
-  for (int i = 0; i < min_ssd.size(); i++) {
+  for (int i = 0; i < vecMaxInliers.size(); i++) {
     vectorA[0] = vec_copy[i].centerX;
     vectorA[1] = vec_copy[i].centerY;
     vectorA[2] = 1;
@@ -830,13 +835,7 @@ frameProcessing(R2Image * otherImage)
 
   // cout << "Optimal Number of Inliers: " << max_inliers << endl;
 
-  // cout << "\nMatrix H: " << endl;
-  // for (int i = 1; i <= 3; i++) {
-  //   for (int j = 1; j <= 3; j++) {
-  //     cout << bestHMatrix[i][j] << "\t";
-  //   }
-  //   cout << "\n";
-  // }
+  
   return bestHMatrix;
 }
 
