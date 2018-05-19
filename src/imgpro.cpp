@@ -128,6 +128,8 @@ ReadCorrespondences(char *filename, R2Segment *&source_segments, R2Segment *&tar
   return 1;
 }
 
+
+
 int
 main(int argc, char **argv)
 {
@@ -140,15 +142,13 @@ main(int argc, char **argv)
     else if (!strcmp(argv[i], "-graffiti")) {
       printf("Video processing started\n");
 
-      char inputName[100] = "../video_input/wall_test/%07d.jpg";
+      char inputName[100] = "../video_input/wallTest1/%07d.jpg";
       char outputName[100] = "../video_output/output%07d.jpg";
       char graffitiFileName[100] = "../graffiti_image.jpg";
 
       R2Image *mainImage = new R2Image();
       R2Image *graffitiImage = new R2Image();
-      //char currentFilename[100];
       char *currentFilename = new char[100];
-      //char currentOutputFilename[100];
       char *currentOutputFilename = new char[100];
       if (!mainImage) {
         fprintf(stderr, "Unable to allocate image\n");
@@ -192,7 +192,7 @@ main(int argc, char **argv)
 
         bestHMatrix = mainImage->frameProcessing(currentImage);
         currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
- 
+
         // write result to file
         if (!currentImage->Write(currentOutputFilename)) {
           fprintf(stderr, "Unable to write %s\n", currentOutputFilename);
