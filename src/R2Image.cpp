@@ -733,11 +733,7 @@ frameProcessing(R2Image * otherImage)
     }
   }
 
-<<<<<<< HEAD
   // draw lines to show how features are being tracked
-=======
-  // draw lines
->>>>>>> 00eb2887abfc2272a5d63bf8aeaff611976ba7bb
   // for (int i = 0; i < optimal_x.size(); i++) {
   //   otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
   // }
@@ -1063,15 +1059,9 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   // 50/50 blend of graffiti image over the video frame
   for(int i = 0; i < empty.width; i++) { 
     for(int j = 0; j < empty.height; j++) {
-<<<<<<< HEAD
       if (empty.Pixel(i,j).Red() >= 0.85 
       && empty.Pixel(i,j).Green() >= 0.85
       && empty.Pixel(i,j).Blue() >= 0.85) {
-=======
-      if(empty.Pixel(i,j).Red() >= 0.85 && empty.Pixel(i,j).Green() >= 0.85
-       && empty.Pixel(i,j).Blue() >= 0.85 ){
-        //blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
->>>>>>> 00eb2887abfc2272a5d63bf8aeaff611976ba7bb
         SetPixel(i, j, temp.Pixel(i,j));
       } else {
         blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
