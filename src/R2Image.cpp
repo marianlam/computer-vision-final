@@ -583,14 +583,14 @@ Harris(double sigma)
   // sort vector in descending order
   sort(featureVec.rbegin(), featureVec.rend());
 
-  // add 150 elements with highest harris scores to recentLocations vector
+  // add 250 elements with highest harris scores to recentLocations vector
   R2Pixel *redPixel = new R2Pixel(1,0,0,0);
   Feature currentFeature;
   int counter = 0;
   int index = 0;
   bool window_isEmpty;
   
-    while (counter < 150) {
+    while (counter < 250) {
     currentFeature = featureVec[index];
     window_isEmpty = true;
     for (int i = -10; i < 10; i++) {
@@ -705,7 +705,7 @@ frameProcessing(R2Image * otherImage)
   double distance;
 
   // loop N number of times
-  while (N <= 300) {
+  while (N <= 800) {
     inliers = 0;
     outliers = 0;
 
@@ -803,6 +803,7 @@ frameProcessing(R2Image * otherImage)
 
   // remove bad feature points (outliers) from recentLocations vector
   for (int i = outlierIndexes_optimal.size() - 1; i >= 0; i--) {
+    cout << "list of features size: " << recentLocations.size() << endl;
     recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
   }
 
