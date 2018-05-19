@@ -803,7 +803,6 @@ frameProcessing(R2Image * otherImage)
 
   // remove bad feature points (outliers) from recentLocations vector
   for (int i = outlierIndexes_optimal.size() - 1; i >= 0; i--) {
-    cout << outlierIndexes_optimal[i] << endl;
     recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
   }
 

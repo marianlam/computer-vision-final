@@ -171,7 +171,7 @@ main(int argc, char **argv)
 
       mainImage->Harris(2.0);
 
-      int end = 88;
+      int end = 235;
       for (int i = 1; i < end; i++)
       {
         double** bestHMatrix; 
