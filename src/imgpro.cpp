@@ -128,8 +128,6 @@ ReadCorrespondences(char *filename, R2Segment *&source_segments, R2Segment *&tar
   return 1;
 }
 
-
-
 int
 main(int argc, char **argv)
 {
@@ -138,11 +136,7 @@ main(int argc, char **argv)
     if (!strcmp(argv[i], "-help")) {
       ShowUsage();
     }
-    // if (!strcmp(argv[i], "-svdTest")) {
-    //     R2Image *image = new R2Image();
-    //   image->svdTest();
-    //   return 0;
-    //   }
+
     else if (!strcmp(argv[i], "-graffiti")) {
       printf("Video processing started\n");
 
@@ -175,8 +169,7 @@ main(int argc, char **argv)
 
       // =============== VIDEO PROCESSING ===============
 
-      mainImage->Harris(2.0); // WHY IS THIS BUGGY??!?
-      // here you could call mainImage->FirstFrameProcessing( );
+      mainImage->Harris(2.0);
 
       int end = 88;
       for (int i = 1; i < end; i++)
