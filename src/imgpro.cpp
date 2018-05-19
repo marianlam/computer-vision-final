@@ -197,14 +197,9 @@ main(int argc, char **argv)
           exit(-1);
         }
 
-        // currentImage->Brighten((float)i/(float)end);
-        // here you could call
-        //
         bestHMatrix = mainImage->frameProcessing(currentImage);
         currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
-        //
-        // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
-
+ 
         // write result to file
         if (!currentImage->Write(currentOutputFilename)) {
           fprintf(stderr, "Unable to write %s\n", currentOutputFilename);
@@ -213,6 +208,7 @@ main(int argc, char **argv)
         delete currentImage;
       }
       delete mainImage;
+      delete graffitiImage;
       // Return success
       return EXIT_SUCCESS;
     }

@@ -160,59 +160,6 @@ svdTest(vector<int> x, vector<int> y, vector<int> xd, vector<int> yd, int size)
     }
   }
 
-  // // fit a 2D conic to five points
-  // R2Point p1(1.2,3.5);
-  // R2Point p2(2.1,2.2);
-  // R2Point p3(0.2,1.6);
-  // R2Point p4(0.0,0.5);
-  // R2Point p5(-0.2,4.2);
-
-  // // build the 5x6 matrix of equations
-  // double** linEquations = dmatrix(1,5,1,6);
-  //
-  // linEquations[1][1] = p1[0]*p1[0];
-  // linEquations[1][2] = p1[0]*p1[1];
-  // linEquations[1][3] = p1[1]*p1[1];
-  // linEquations[1][4] = p1[0];
-  // linEquations[1][5] = p1[1];
-  // linEquations[1][6] = 1.0;
-  //
-  // linEquations[2][1] = p2[0]*p2[0];
-  // linEquations[2][2] = p2[0]*p2[1];
-  // linEquations[2][3] = p2[1]*p2[1];
-  // linEquations[2][4] = p2[0];
-  // linEquations[2][5] = p2[1];
-  // linEquations[2][6] = 1.0;
-  //
-  // linEquations[3][1] = p3[0]*p3[0];
-  // linEquations[3][2] = p3[0]*p3[1];
-  // linEquations[3][3] = p3[1]*p3[1];
-  // linEquations[3][4] = p3[0];
-  // linEquations[3][5] = p3[1];
-  // linEquations[3][6] = 1.0;
-  //
-  // linEquations[4][1] = p4[0]*p4[0];
-  // linEquations[4][2] = p4[0]*p4[1];
-  // linEquations[4][3] = p4[1]*p4[1];
-  // linEquations[4][4] = p4[0];
-  // linEquations[4][5] = p4[1];
-  // linEquations[4][6] = 1.0;
-  //
-  // linEquations[5][1] = p5[0]*p5[0];
-  // linEquations[5][2] = p5[0]*p5[1];
-  // linEquations[5][3] = p5[1]*p5[1];
-  // linEquations[5][4] = p5[0];
-  // linEquations[5][5] = p5[1];
-  // linEquations[5][6] = 1.0;
-  //
-  // printf("\n Fitting a conic to five points:\n");
-  // printf("Point #1: %f,%f\n",p1[0],p1[1]);
-  // printf("Point #2: %f,%f\n",p2[0],p2[1]);
-  // printf("Point #3: %f,%f\n",p3[0],p3[1]);
-  // printf("Point #4: %f,%f\n",p4[0],p4[1]);
-  // printf("Point #5: %f,%f\n",p5[0],p5[1]);
-  //
-
   // compute the SVD
   double singularValues[10]; // 1..9
   double** nullspaceMatrix = dmatrix(1,9,1,9);
@@ -246,51 +193,6 @@ svdTest(vector<int> x, vector<int> y, vector<int> xd, vector<int> yd, int size)
       }
     }
   }
-
-  // // make sure the solution is correct:
-  // printf("Equation #1 result: %f\n",	p1[0]*p1[0]*nullspaceMatrix[1][smallestIndex] +
-  // p1[0]*p1[1]*nullspaceMatrix[2][smallestIndex] +
-  // p1[1]*p1[1]*nullspaceMatrix[3][smallestIndex] +
-  // p1[0]*nullspaceMatrix[4][smallestIndex] +
-  // p1[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
-  //
-  // printf("Equation #2 result: %f\n",	p2[0]*p2[0]*nullspaceMatrix[1][smallestIndex] +
-  // p2[0]*p2[1]*nullspaceMatrix[2][smallestIndex] +
-  // p2[1]*p2[1]*nullspaceMatrix[3][smallestIndex] +
-  // p2[0]*nullspaceMatrix[4][smallestIndex] +
-  // p2[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
-  //
-  // printf("Equation #3 result: %f\n",	p3[0]*p3[0]*nullspaceMatrix[1][smallestIndex] +
-  // p3[0]*p3[1]*nullspaceMatrix[2][smallestIndex] +
-  // p3[1]*p3[1]*nullspaceMatrix[3][smallestIndex] +
-  // p3[0]*nullspaceMatrix[4][smallestIndex] +
-  // p3[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
-  //
-  // printf("Equation #4 result: %f\n",	p4[0]*p4[0]*nullspaceMatrix[1][smallestIndex] +
-  // p4[0]*p4[1]*nullspaceMatrix[2][smallestIndex] +
-  // p4[1]*p4[1]*nullspaceMatrix[3][smallestIndex] +
-  // p4[0]*nullspaceMatrix[4][smallestIndex] +
-  // p4[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
-  //
-  // printf("Equation #5 result: %f\n",	p5[0]*p5[0]*nullspaceMatrix[1][smallestIndex] +
-  // p5[0]*p5[1]*nullspaceMatrix[2][smallestIndex] +
-  // p5[1]*p5[1]*nullspaceMatrix[3][smallestIndex] +
-  // p5[0]*nullspaceMatrix[4][smallestIndex] +
-  // p5[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
-  //
-  // R2Point test_point(0.34,-2.8);
-  //
-  // printf("A point off the conic: %f\n",	test_point[0]*test_point[0]*nullspaceMatrix[1][smallestIndex] +
-  // test_point[0]*test_point[1]*nullspaceMatrix[2][smallestIndex] +
-  // test_point[1]*test_point[1]*nullspaceMatrix[3][smallestIndex] +
-  // test_point[0]*nullspaceMatrix[4][smallestIndex] +
-  // test_point[1]*nullspaceMatrix[5][smallestIndex] +
-  // nullspaceMatrix[6][smallestIndex]);
 
   return matrixH;
 }
@@ -435,7 +337,6 @@ Blur(double sigma)
     sum += kernel[i];
   }
   // print sum
-  // cout << "sum = " << sum << endl;
 
   float normalized_sum = 0;
   // normalize kernel
@@ -444,7 +345,6 @@ Blur(double sigma)
     normalized_sum += kernel[i];
   }
   // print normalized sum
-  // cout << "normalized sum = " << normalized_sum << endl; // should equal 1
 
   // Gaussian blur of the image. Separable solution is preferred
   for (int i = 0; i < width; i++) {
@@ -463,7 +363,6 @@ Blur(double sigma)
         *pixel_copy += kernel[k] * temp.Pixel(i,index);
       }
       Pixel(i,j) = *pixel_copy;
-      // Pixel(i,j).Clamp();
     }
   }
 
@@ -486,7 +385,6 @@ Blur(double sigma)
         *pixel_copy += kernel[k] * temp2.Pixel(index,j);
       }
       Pixel(i,j) = *pixel_copy;
-      // Pixel(i,j).Clamp();
     }
   }
 }
@@ -656,21 +554,18 @@ frameProcessing(R2Image * otherImage)
       trackedFeatureLocations.push_back(Feature(minX, minY, min));  // where they map to
     }
   }
-
-  //mark all good initial features
-  // for (int i = 0; i < initialFeatureLocations.size(); i++) {
-  //     R2Pixel redPixel(1.0,0.0,0.0,1.0);
-  //     if ((initialFeatureLocations[i].centerX - 5 > 0)
-  //     && (initialFeatureLocations[i].centerX + 5 < width)
-  //     && (initialFeatureLocations[i].centerY - 5 > 0)
-  //     && (initialFeatureLocations[i].centerY + 5 < height)) {
-  //       for(int u = -5; u < 5; u++){
-  //         for(int v = -5; v < 5; v++){
-  //           otherImage->SetPixel(initialFeatureLocations[i].centerX+u, initialFeatureLocations[i].centerY+v, redPixel);
-  //         }
-  //       }
-  //     }
-  // }
+      // draw intial feature locations
+      // R2Pixel redPixel(1.0,0.0,0.0,1.0);
+      // if ((initialFeatureLocations[i].centerX - 5 > 0)
+      // && (initialFeatureLocations[i].centerX + 5 < width)
+      // && (initialFeatureLocations[i].centerY - 5 > 0)
+      // && (initialFeatureLocations[i].centerY + 5 < height)) {
+      //   for(int u = -5; u < 5; u++){
+      //     for(int v = -5; v < 5; v++){
+      //       otherImage->SetPixel(initialFeatureLocations[i].centerX+u, initialFeatureLocations[i].centerY+v, redPixel);
+      //     }
+      //   }
+      // }
 
   // run RANSAC and get optimal H transformation matrix
   int rand_index;
@@ -680,8 +575,6 @@ frameProcessing(R2Image * otherImage)
   int N = 0;
   int max_inliers = 0;
   int min_outliers = 0;
-  // vector<Feature> vecInliers; 
-  // vector<Feature> tempVecCopy;
   vector<int> outlierIndexes;
   vector<int> outlierIndexes_optimal;
 
@@ -706,10 +599,8 @@ frameProcessing(R2Image * otherImage)
   double HA_z;
   double distance;
 
-  // loop N (1000) number of times
+  // loop N number of times
   while (N <= 800) {
-    inliers = 0;
-    outliers = 0;
 
     // randomly choose 4 points
     rand_index = rand() % trackedFeatureLocations.size();
@@ -766,6 +657,9 @@ frameProcessing(R2Image * otherImage)
 
     // loop over all A->B matches
     for (int i = 0; i < trackedFeatureLocations.size(); i++) {
+      inliers = 0;
+      outliers = 0;
+
       // matrix multiplication to get HA
       vectorA[0] = initialFeatureLocations[i].centerX;
       vectorA[1] = initialFeatureLocations[i].centerY;
@@ -787,8 +681,6 @@ frameProcessing(R2Image * otherImage)
       // if distance is beneath threshold, increment counter
       if (distance <= 4.0) {
         inliers++;
-        //vecInliers.push_back(Feature(trackedFeatureLocations[i].centerX, trackedFeatureLocations[i].centerY, 0));
-        //tempVecCopy.push_back(Feature(initialFeatureLocations[i].centerX, initialFeatureLocations[i].centerY, 0));
       } else {
         outliers++;
         outlierIndexes.push_back(i);
@@ -800,26 +692,15 @@ frameProcessing(R2Image * otherImage)
       matrixH_optimal = matrixH;
       min_outliers = outliers;
       outlierIndexes_optimal = outlierIndexes;
-      // trackedFeatureLocations = vecInliers;
-      // initialFeatureLocations = tempVecCopy;
     }
     outlierIndexes.clear();
-    // vecInliers.clear();
-    // tempVecCopy.clear();
     N++;
   }
-  //vecMinOutliers.clear();
 
   // remove bad feature points (outliers) from recentLocations vector
   for (int i = 0; i < outlierIndexes_optimal.size(); i++) {
     recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
   }
-
-  cout << "num of outliers: " << outliers << endl;
-  cout << "num of inliers: " << inliers << endl;
-  cout << "size of recentLocations vector: " << recentLocations.size() << endl;
-  cout << "tracked feature location list size: " << trackedFeatureLocations.size() << endl;
-  cout << "original feature location list size: " << initialFeatureLocations.size() << endl;
  
   vector<int> optimal_x;
   vector<int> optimal_y;
@@ -828,8 +709,8 @@ frameProcessing(R2Image * otherImage)
 
   // re-calculate H matrix with ALL good points
   for (int i = 0; i < trackedFeatureLocations.size(); i++) {
-    vectorA[0] = initialFeatureLocations[i].centerX; // SEG_FAULT REASON!
-    vectorA[1] = initialFeatureLocations[i].centerY; // HERE trackedFeatureLocations SIZE != initialFeatureLocations SIZE
+    vectorA[0] = initialFeatureLocations[i].centerX;
+    vectorA[1] = initialFeatureLocations[i].centerY;
     vectorA[2] = 1;
 
     HA_x = matrixH_optimal[1][1]*vectorA[0] + matrixH_optimal[1][2]*vectorA[1] + matrixH_optimal[1][3]*vectorA[2];
@@ -845,29 +726,17 @@ frameProcessing(R2Image * otherImage)
     distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
     if (distance <= 4.0) {
-      optimal_x.push_back(initialFeatureLocations[i].centerX); // WHAT'S THE DIFFERENCE BETWEEN
-      optimal_y.push_back(initialFeatureLocations[i].centerY); // VEC COPY AND trackedFeatureLocations HERE?!
-      optimal_xd.push_back(trackedFeatureLocations[i].centerX); // A: initialFeatureLocations keeps list of original feature points
-      optimal_yd.push_back(trackedFeatureLocations[i].centerY); // trackedFeatureLocations are the pixel coordinates where they track to
-
-      // R2Pixel redPixel(1.0,0.0,0.0,1.0);
-      // if ((trackedFeatureLocations[i].centerX - 5 > 0)
-      // && (trackedFeatureLocations[i].centerX + 5 < width)
-      // && (trackedFeatureLocations[i].centerY - 5 > 0)
-      // && (trackedFeatureLocations[i].centerY + 5 < height)) {
-      //   for(int u = -5; u < 5; u++){
-      //     for(int v = -5; v < 5; v++){
-      //       otherImage->SetPixel(trackedFeatureLocations[i].centerX+u, trackedFeatureLocations[i].centerY+v, redPixel);
-      //     }
-      //   }
-      // }
+      optimal_x.push_back(initialFeatureLocations[i].centerX); 
+      optimal_y.push_back(initialFeatureLocations[i].centerY); 
+      optimal_xd.push_back(trackedFeatureLocations[i].centerX);
+      optimal_yd.push_back(trackedFeatureLocations[i].centerY);
     }
   }
 
-  // draw lines
-  for (int i = 0; i < optimal_x.size(); i++) {
-    otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
-  }
+  // draw lines to show how features are being tracked
+  // for (int i = 0; i < optimal_x.size(); i++) {
+  //   otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
+  // }
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
   
@@ -1154,7 +1023,6 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   // find at least 100 features on this image, and another 100 on the "otherImage". Based on these,
   // compute the matching homography, and blend the transformed "otherImage" into this image with a 50% opacity.
 
-
   // make copy of image
   R2Image temp(*this);
 
@@ -1163,79 +1031,8 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   double z;
   vector<int> xd;
   vector<int> yd;
-  R2Pixel imageB_pixel;
   R2Pixel blended_pixel;
   R2Pixel *white = new R2Pixel(1.0,1.0,1.0,1.0);
-
-  // double determinant = 0; 
-  // double** minorMatrix = dmatrix(1,3,1,3);
-  
-
-  cout << "\nMatrix H: " << endl;
-  for (int i = 1; i <= 3; i++) {
-    for (int j = 1; j <= 3; j++) {
-      cout << bestHMatrix[i][j] << "\t";
-    }
-    cout << "\n";
-  }
-
-  // minorMatrix[1][1]=(bestHMatrix[2][2]*bestHMatrix[3][3])-(bestHMatrix[2][3]*bestHMatrix[3][2]);                //***********************************
-  // minorMatrix[1][2]=-1*((bestHMatrix[2][1]*bestHMatrix[3][3])-(bestHMatrix[2][3]*bestHMatrix[3][1]));        //                                                                 *
-  // minorMatrix[1][3]=(bestHMatrix[2][1]*bestHMatrix[3][2])-(bestHMatrix[2][2]*bestHMatrix[3][1]);                //                                                                 *
-  // minorMatrix[2][1]=-1*((bestHMatrix[1][2]*bestHMatrix[3][3])-(bestHMatrix[3][2]*bestHMatrix[1][3]));        //                                                                 *
-  // minorMatrix[2][2]=(bestHMatrix[1][1]*bestHMatrix[3][3])-(bestHMatrix[1][3]*bestHMatrix[3][1]);                // CALCULATION OF COFACTOR          *
-  // minorMatrix[2][3]=-1*((bestHMatrix[1][1]*bestHMatrix[3][2])-(bestHMatrix[1][2]*bestHMatrix[3][1]));        //                                                                 *
-  // minorMatrix[3][1]=bestHMatrix[1][2]*bestHMatrix[2][3]-bestHMatrix[1][3]*bestHMatrix[2][2];                //                                                                 *
-  // minorMatrix[3][2]=-1*((bestHMatrix[1][1]*bestHMatrix[2][3])-(bestHMatrix[1][3]*bestHMatrix[2][1]));        //                                                                 *
-  // minorMatrix[3][3]=(bestHMatrix[1][1]*bestHMatrix[2][2])-(bestHMatrix[1][2]*bestHMatrix[2][1]);                //***********************************
-
-
-  // determinant = (bestHMatrix[1][1]*minorMatrix[1][1])
-  //              -(bestHMatrix[1][2]*minorMatrix[1][2])
-  //              +(bestHMatrix[1][3]*minorMatrix[1][3]);
-  
-  // cout<< "Determinant: " << determinant << endl;
-
-  // double** adjointMatrix = dmatrix(1,3,1,3);
-  // for(int i = 1 ;  i <= 3; i++){
-  //   for(int j = 1; j <= 3; j++){
-  //     adjointMatrix[i][j] = minorMatrix[j][i];
-  //   }
-  // }
-
-  // double** inverseMatrix = dmatrix(1,3,1,3);
-  //  for(int i = 1 ;  i <= 3; i++){
-  //   for(int j = 1; j <= 3; j++){
-  //     inverseMatrix[i][j] = adjointMatrix[i][j] * (1/determinant);
-  //   }
-  // }
-
-  // cout << "\nInverse Matrix H: " << endl;
-  // for (int i = 1; i <= 3; i++) {
-  //   for (int j = 1; j <= 3; j++) {
-  //     cout << inverseMatrix[i][j] << "\t";
-  //   }
-  //   cout << "\n";
-  // }
-
-  // for(double i = 0; i < otherImage -> width; i++){
-  //   for(double j=0; j < otherImage -> height; j++){
-  //      x = inverseMatrix[1][1]*i + inverseMatrix[1][2]*j + inverseMatrix[1][3];
-  //      y = inverseMatrix[2][1]*i + inverseMatrix[2][2]*j + inverseMatrix[2][3];
-  //      z = inverseMatrix[3][1]*i + inverseMatrix[3][2]*j + inverseMatrix[3][3];
-
-  //      x = x/z; 
-  //      y = y/z; 
-
-  //      if ((x > 0 && x < width) && (y > 0 && y < height)){
-  //        imageB_pixel = otherImage -> Pixel(i,j);
-  //        blended_pixel = (imageB_pixel + temp.Pixel(x,y))/2;
-
-  //        SetPixel(x,y,blended_pixel);
-
-  //      }
-  //   }
-  // }
   R2Pixel currentPixel; 
   R2Image empty(otherImage->width, otherImage-> height);
 
@@ -1260,41 +1057,18 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   }
 
   // 50/50 blend of graffiti image over the video frame
-  for(int i = 0; i < empty.width; i++) {
+  for(int i = 0; i < empty.width; i++) { 
     for(int j = 0; j < empty.height; j++) {
-      blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
-      SetPixel(i, j, blended_pixel);
+      if (empty.Pixel(i,j).Red() >= 0.85 
+      && empty.Pixel(i,j).Green() >= 0.85
+      && empty.Pixel(i,j).Blue() >= 0.85) {
+        SetPixel(i, j, temp.Pixel(i,j));
+      } else {
+        blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
+        SetPixel(i,j,blended_pixel);
+      }
     }
   }
-
-
-  // apply H matrix
-  // for (double i = 0; i < width; i++) {
-  //   for (double j = 0; j < height; j++) {
-
-
-  //     x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*i + bestHMatrix[1][3];
-  //     y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
-  //     z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
-
-
-  //     x = x/z;
-  //     y = y/z;
-      
-  //     if ((x > 0 && x < width) && (y > 0 && y < height)) {
-
-  //       imageB_pixel = otherImage->Pixel(i,j);
-  //       blended_pixel = (imageB_pixel + temp.Pixel(x,y)) / 2;
-  //       SetPixel(i,j,blended_pixel);
-
-  //     }
-  //     // } else {
-  //     //   SetPixel(i,j,*white);
-  //     // }
-  //   }
-  // }
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////
