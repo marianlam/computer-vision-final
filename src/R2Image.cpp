@@ -623,8 +623,8 @@ frameProcessing(R2Image * otherImage)
   int min;
   int minX;
   int minY;
-  vector<Feature> min_ssd;
-  vector<Feature> vec_copy;
+  vector<Feature> trackedFeatureLocations;
+  vector<Feature> initialFeatureLocations;
 
   for(int a = 0; a < recentLocations.size(); a++) {
     px = recentLocations[a].centerX;
@@ -652,21 +652,21 @@ frameProcessing(R2Image * otherImage)
         }
       }
       // add pixel with smallest SSD to vector
-      vec_copy.push_back(Feature(px, py, 0));
-      min_ssd.push_back(Feature(minX, minY, min));
+      initialFeatureLocations.push_back(Feature(px, py, 0)); // original feature point locations
+      trackedFeatureLocations.push_back(Feature(minX, minY, min));  // where they map to
     }
   }
 
-  //mark tracked features
-  // for (int i = 0; i < min_ssd.size(); i++) {
+  //mark all good initial features
+  // for (int i = 0; i < initialFeatureLocations.size(); i++) {
   //     R2Pixel redPixel(1.0,0.0,0.0,1.0);
-  //     if ((min_ssd[i].centerX - 5 > 0)
-  //     && (min_ssd[i].centerX + 5 < width)
-  //     && (min_ssd[i].centerY - 5 > 0)
-  //     && (min_ssd[i].centerY + 5 < height)) {
+  //     if ((initialFeatureLocations[i].centerX - 5 > 0)
+  //     && (initialFeatureLocations[i].centerX + 5 < width)
+  //     && (initialFeatureLocations[i].centerY - 5 > 0)
+  //     && (initialFeatureLocations[i].centerY + 5 < height)) {
   //       for(int u = -5; u < 5; u++){
   //         for(int v = -5; v < 5; v++){
-  //           otherImage->SetPixel(min_ssd[i].centerX+u, min_ssd[i].centerY+v, redPixel);
+  //           otherImage->SetPixel(initialFeatureLocations[i].centerX+u, initialFeatureLocations[i].centerY+v, redPixel);
   //         }
   //       }
   //     }
@@ -676,9 +676,14 @@ frameProcessing(R2Image * otherImage)
   int rand_index;
 
   int inliers;
+  int outliers;
   int N = 0;
   int max_inliers = 0;
-  vector<Feature> vecInliers; 
+  int min_outliers = 0;
+  // vector<Feature> vecInliers; 
+  // vector<Feature> tempVecCopy;
+  vector<int> outlierIndexes;
+  vector<int> outlierIndexes_optimal;
 
   int x1, x2, x3, x4;
   int y1, y2, y3, y4;
@@ -702,33 +707,34 @@ frameProcessing(R2Image * otherImage)
   double distance;
 
   // loop N (1000) number of times
-  while (N <= 1000) {
+  while (N <= 800) {
     inliers = 0;
+    outliers = 0;
 
     // randomly choose 4 points
-    rand_index = rand() % min_ssd.size();
-    x1 = vec_copy[rand_index].centerX;
-    y1 = vec_copy[rand_index].centerY;
-    xd1 = min_ssd[rand_index].centerX;
-    yd1 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x1 = initialFeatureLocations[rand_index].centerX;
+    y1 = initialFeatureLocations[rand_index].centerY;
+    xd1 = trackedFeatureLocations[rand_index].centerX;
+    yd1 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x2 = vec_copy[rand_index].centerX;
-    y2 = vec_copy[rand_index].centerY;
-    xd2 = min_ssd[rand_index].centerX;
-    yd2 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x2 = initialFeatureLocations[rand_index].centerX;
+    y2 = initialFeatureLocations[rand_index].centerY;
+    xd2 = trackedFeatureLocations[rand_index].centerX;
+    yd2 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x3 = vec_copy[rand_index].centerX;
-    y3 = vec_copy[rand_index].centerY;
-    xd3 = min_ssd[rand_index].centerX;
-    yd3 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x3 = initialFeatureLocations[rand_index].centerX;
+    y3 = initialFeatureLocations[rand_index].centerY;
+    xd3 = trackedFeatureLocations[rand_index].centerX;
+    yd3 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x4 = vec_copy[rand_index].centerX;
-    y4 = vec_copy[rand_index].centerY;
-    xd4 = min_ssd[rand_index].centerX;
-    yd4 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x4 = initialFeatureLocations[rand_index].centerX;
+    y4 = initialFeatureLocations[rand_index].centerY;
+    xd4 = trackedFeatureLocations[rand_index].centerX;
+    yd4 = trackedFeatureLocations[rand_index].centerY;
 
     vector<int> x;
     vector<int> y;
@@ -759,10 +765,10 @@ frameProcessing(R2Image * otherImage)
     matrixH = svdTest(x, y, xd, yd, 4);
 
     // loop over all A->B matches
-    for (int i = 0; i < min_ssd.size(); i++) {
+    for (int i = 0; i < trackedFeatureLocations.size(); i++) {
       // matrix multiplication to get HA
-      vectorA[0] = vec_copy[i].centerX;
-      vectorA[1] = vec_copy[i].centerY;
+      vectorA[0] = initialFeatureLocations[i].centerX;
+      vectorA[1] = initialFeatureLocations[i].centerY;
       vectorA[2] = 1;
 
       HA_x = matrixH[1][1]*vectorA[0] + matrixH[1][2]*vectorA[1] + matrixH[1][3]*vectorA[2];
@@ -776,36 +782,54 @@ frameProcessing(R2Image * otherImage)
       vectorHA[1] = HA_y;
 
       // find the distance between HA and B
-      distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+      distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
       // if distance is beneath threshold, increment counter
       if (distance <= 4.0) {
         inliers++;
-        vecInliers.push_back(Feature(min_ssd[i].centerX, min_ssd[i].centerY, 0));
+        //vecInliers.push_back(Feature(trackedFeatureLocations[i].centerX, trackedFeatureLocations[i].centerY, 0));
+        //tempVecCopy.push_back(Feature(initialFeatureLocations[i].centerX, initialFeatureLocations[i].centerY, 0));
+      } else {
+        outliers++;
+        outlierIndexes.push_back(i);
       }
     }
     // keep track of H matrix with the most supporters
     if (inliers > max_inliers) {
       max_inliers = inliers;
       matrixH_optimal = matrixH;
-      min_ssd = vecInliers;
+      min_outliers = outliers;
+      outlierIndexes_optimal = outlierIndexes;
+      // trackedFeatureLocations = vecInliers;
+      // initialFeatureLocations = tempVecCopy;
     }
-    vecInliers.clear();
+    outlierIndexes.clear();
+    // vecInliers.clear();
+    // tempVecCopy.clear();
     N++;
   }
   //vecMinOutliers.clear();
 
+  // remove bad feature points (outliers) from recentLocations vector
+  for (int i = 0; i < outlierIndexes_optimal.size(); i++) {
+    recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
+  }
 
-  cout << "Min SSD size: " << min_ssd.size();
+  cout << "num of outliers: " << outliers << endl;
+  cout << "num of inliers: " << inliers << endl;
+  cout << "size of recentLocations vector: " << recentLocations.size() << endl;
+  cout << "tracked feature location list size: " << trackedFeatureLocations.size() << endl;
+  cout << "original feature location list size: " << initialFeatureLocations.size() << endl;
+ 
   vector<int> optimal_x;
   vector<int> optimal_y;
   vector<int> optimal_xd;
   vector<int> optimal_yd;
 
   // re-calculate H matrix with ALL good points
-  for (int i = 0; i < min_ssd.size(); i++) {
-    vectorA[0] = vec_copy[i].centerX;
-    vectorA[1] = vec_copy[i].centerY;
+  for (int i = 0; i < trackedFeatureLocations.size(); i++) {
+    vectorA[0] = initialFeatureLocations[i].centerX; // SEG_FAULT REASON!
+    vectorA[1] = initialFeatureLocations[i].centerY; // HERE trackedFeatureLocations SIZE != initialFeatureLocations SIZE
     vectorA[2] = 1;
 
     HA_x = matrixH_optimal[1][1]*vectorA[0] + matrixH_optimal[1][2]*vectorA[1] + matrixH_optimal[1][3]*vectorA[2];
@@ -818,28 +842,27 @@ frameProcessing(R2Image * otherImage)
     vectorHA[0] = HA_x;
     vectorHA[1] = HA_y;
 
-    distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+    distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
     if (distance <= 4.0) {
-      optimal_x.push_back(vec_copy[i].centerX);
-      optimal_y.push_back(vec_copy[i].centerY);
-      optimal_xd.push_back(min_ssd[i].centerX);
-      optimal_yd.push_back(min_ssd[i].centerY);
+      optimal_x.push_back(initialFeatureLocations[i].centerX); // WHAT'S THE DIFFERENCE BETWEEN
+      optimal_y.push_back(initialFeatureLocations[i].centerY); // VEC COPY AND trackedFeatureLocations HERE?!
+      optimal_xd.push_back(trackedFeatureLocations[i].centerX); // A: initialFeatureLocations keeps list of original feature points
+      optimal_yd.push_back(trackedFeatureLocations[i].centerY); // trackedFeatureLocations are the pixel coordinates where they track to
 
-          R2Pixel redPixel(1.0,0.0,0.0,1.0);
-      if ((min_ssd[i].centerX - 5 > 0)
-      && (min_ssd[i].centerX + 5 < width)
-      && (min_ssd[i].centerY - 5 > 0)
-      && (min_ssd[i].centerY + 5 < height)) {
-        for(int u = -5; u < 5; u++){
-          for(int v = -5; v < 5; v++){
-            otherImage->SetPixel(min_ssd[i].centerX+u, min_ssd[i].centerY+v, redPixel);
-          }
-        }
-      }
+      // R2Pixel redPixel(1.0,0.0,0.0,1.0);
+      // if ((trackedFeatureLocations[i].centerX - 5 > 0)
+      // && (trackedFeatureLocations[i].centerX + 5 < width)
+      // && (trackedFeatureLocations[i].centerY - 5 > 0)
+      // && (trackedFeatureLocations[i].centerY + 5 < height)) {
+      //   for(int u = -5; u < 5; u++){
+      //     for(int v = -5; v < 5; v++){
+      //       otherImage->SetPixel(trackedFeatureLocations[i].centerX+u, trackedFeatureLocations[i].centerY+v, redPixel);
+      //     }
+      //   }
+      // }
     }
   }
-
 
   // draw lines
   for (int i = 0; i < optimal_x.size(); i++) {
@@ -847,9 +870,6 @@ frameProcessing(R2Image * otherImage)
   }
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
-
-  // cout << "Optimal Number of Inliers: " << max_inliers << endl;
-
   
   return bestHMatrix;
 }
@@ -924,8 +944,8 @@ blendOtherImageTranslated(R2Image * otherImage)
   double min;
   int minX;
   int minY;
-  vector<Feature> min_ssd;
-  vector<Feature> vec_copy;
+  vector<Feature> trackedFeatureLocations;
+  vector<Feature> initialFeatureLocations;
 
   for (int a = 0; a < recentLocations.size(); a++) {
     px = recentLocations[a].centerX;
@@ -954,8 +974,8 @@ blendOtherImageTranslated(R2Image * otherImage)
         }
       }
       // add pixel with smallest SSD to vector
-      vec_copy.push_back(Feature(px, py, 0));
-      min_ssd.push_back(Feature(minX, minY, min));
+      initialFeatureLocations.push_back(Feature(px, py, 0));
+      trackedFeatureLocations.push_back(Feature(minX, minY, min));
     }
   }
 
@@ -991,29 +1011,29 @@ blendOtherImageTranslated(R2Image * otherImage)
     inliers = 0;
 
     // randomly choose 4 points
-    rand_index = rand() % min_ssd.size();
-    x1 = vec_copy[rand_index].centerX;
-    y1 = vec_copy[rand_index].centerY;
-    xd1 = min_ssd[rand_index].centerX;
-    yd1 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x1 = initialFeatureLocations[rand_index].centerX;
+    y1 = initialFeatureLocations[rand_index].centerY;
+    xd1 = trackedFeatureLocations[rand_index].centerX;
+    yd1 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x2 = vec_copy[rand_index].centerX;
-    y2 = vec_copy[rand_index].centerY;
-    xd2 = min_ssd[rand_index].centerX;
-    yd2 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x2 = initialFeatureLocations[rand_index].centerX;
+    y2 = initialFeatureLocations[rand_index].centerY;
+    xd2 = trackedFeatureLocations[rand_index].centerX;
+    yd2 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x3 = vec_copy[rand_index].centerX;
-    y3 = vec_copy[rand_index].centerY;
-    xd3 = min_ssd[rand_index].centerX;
-    yd3 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x3 = initialFeatureLocations[rand_index].centerX;
+    y3 = initialFeatureLocations[rand_index].centerY;
+    xd3 = trackedFeatureLocations[rand_index].centerX;
+    yd3 = trackedFeatureLocations[rand_index].centerY;
 
-    rand_index = rand() % min_ssd.size();
-    x4 = vec_copy[rand_index].centerX;
-    y4 = vec_copy[rand_index].centerY;
-    xd4 = min_ssd[rand_index].centerX;
-    yd4 = min_ssd[rand_index].centerY;
+    rand_index = rand() % trackedFeatureLocations.size();
+    x4 = initialFeatureLocations[rand_index].centerX;
+    y4 = initialFeatureLocations[rand_index].centerY;
+    xd4 = trackedFeatureLocations[rand_index].centerX;
+    yd4 = trackedFeatureLocations[rand_index].centerY;
 
     vector<int> x;
     vector<int> y;
@@ -1044,10 +1064,10 @@ blendOtherImageTranslated(R2Image * otherImage)
     matrixH = svdTest(x, y, xd, yd, 4);
 
     // loop over all A->B matches
-    for (int i = 0; i < min_ssd.size(); i++) {
+    for (int i = 0; i < trackedFeatureLocations.size(); i++) {
       // matrix multiplication to get HA
-      vectorA[0] = vec_copy[i].centerX;
-      vectorA[1] = vec_copy[i].centerY;
+      vectorA[0] = initialFeatureLocations[i].centerX;
+      vectorA[1] = initialFeatureLocations[i].centerY;
       vectorA[2] = 1;
 
       HA_x = matrixH[1][1]*vectorA[0] + matrixH[1][2]*vectorA[1] + matrixH[1][3]*vectorA[2];
@@ -1061,7 +1081,7 @@ blendOtherImageTranslated(R2Image * otherImage)
       vectorHA[1] = HA_y;
 
       // find the distance between HA and B
-      distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+      distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
       // if distance is beneath threshold, increment counter
       if (distance <= 4.0) {
@@ -1082,9 +1102,9 @@ blendOtherImageTranslated(R2Image * otherImage)
   vector<int> optimal_yd;
 
   // re-calculate H matrix with ALL good points
-  for (int i = 0; i < min_ssd.size(); i++) {
-    vectorA[0] = vec_copy[i].centerX;
-    vectorA[1] = vec_copy[i].centerY;
+  for (int i = 0; i < trackedFeatureLocations.size(); i++) {
+    vectorA[0] = initialFeatureLocations[i].centerX;
+    vectorA[1] = initialFeatureLocations[i].centerY;
     vectorA[2] = 1;
 
     HA_x = matrixH_optimal[1][1]*vectorA[0] + matrixH_optimal[1][2]*vectorA[1] + matrixH_optimal[1][3]*vectorA[2];
@@ -1097,13 +1117,13 @@ blendOtherImageTranslated(R2Image * otherImage)
     vectorHA[0] = HA_x;
     vectorHA[1] = HA_y;
 
-    distance = sqrt(pow(vectorHA[0] - min_ssd[i].centerX, 2) + pow(vectorHA[1] - min_ssd[i].centerY, 2));
+    distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
     if (distance <= 4.0) {
-      optimal_x.push_back(vec_copy[i].centerX);
-      optimal_y.push_back(vec_copy[i].centerY);
-      optimal_xd.push_back(min_ssd[i].centerX);
-      optimal_yd.push_back(min_ssd[i].centerY);
+      optimal_x.push_back(initialFeatureLocations[i].centerX);
+      optimal_y.push_back(initialFeatureLocations[i].centerY);
+      optimal_xd.push_back(trackedFeatureLocations[i].centerX);
+      optimal_yd.push_back(trackedFeatureLocations[i].centerY);
 
     }
   }
@@ -1218,17 +1238,19 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   // }
   R2Pixel currentPixel; 
   R2Image empty(otherImage->width, otherImage-> height);
+
   for(int i = 0; i < otherImage -> width; i++){
     for(int j = 0; j < otherImage -> height; j++){
       x = bestHMatrix[1][1]*i + bestHMatrix[1][2]*i + bestHMatrix[1][3];
       y = bestHMatrix[2][1]*i + bestHMatrix[2][2]*j + bestHMatrix[2][3];
       z = bestHMatrix[3][1]*i + bestHMatrix[3][2]*j + bestHMatrix[3][3];
 
-      //Points in graffiti image 
+      // points in graffiti image 
       x = x/z;
       y = y/z;
 
-      if ((x > 0 && x < width) && (y > 0 && y < height)) {
+      // color sample graffiti image and map color back to empty image
+      if ((x > 0 && x < otherImage -> width) && (y > 0 && y < otherImage -> height)) {
         currentPixel = otherImage -> Pixel(x,y);
         empty.SetPixel(i,j,currentPixel);
       } else {
@@ -1236,6 +1258,15 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
       }
     }
   }
+
+  // 50/50 blend of graffiti image over the video frame
+  for(int i = 0; i < empty.width; i++) {
+    for(int j = 0; j < empty.height; j++) {
+      blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
+      SetPixel(i, j, blended_pixel);
+    }
+  }
+
 
   // apply H matrix
   // for (double i = 0; i < width; i++) {

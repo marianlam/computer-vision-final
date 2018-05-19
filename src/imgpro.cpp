@@ -148,7 +148,7 @@ main(int argc, char **argv)
 
       char inputName[100] = "../video_input/wall_test/%07d.jpg";
       char outputName[100] = "../video_output/output%07d.jpg";
-      char graffitiFileName[100] = "../paint_splatter.jpg";
+      char graffitiFileName[100] = "../graffiti_image.jpg";
 
       R2Image *mainImage = new R2Image();
       R2Image *graffitiImage = new R2Image();
@@ -201,7 +201,7 @@ main(int argc, char **argv)
         // here you could call
         //
         bestHMatrix = mainImage->frameProcessing(currentImage);
-        //currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
+        currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
         //
         // where FrameProcessing would process the current input currentImage, as well as writing the output to currentImage
 
