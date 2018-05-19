@@ -865,9 +865,9 @@ frameProcessing(R2Image * otherImage)
   }
 
   // draw lines
-  for (int i = 0; i < optimal_x.size(); i++) {
-    otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
-  }
+  // for (int i = 0; i < optimal_x.size(); i++) {
+  //   otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
+  // }
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
   
@@ -1260,10 +1260,16 @@ blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix)
   }
 
   // 50/50 blend of graffiti image over the video frame
-  for(int i = 0; i < empty.width; i++) {
+  for(int i = 0; i < empty.width; i++) { 
     for(int j = 0; j < empty.height; j++) {
-      blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
-      SetPixel(i, j, blended_pixel);
+      if(empty.Pixel(i,j).Red() >= 0.85 && empty.Pixel(i,j).Green() >= 0.85
+       && empty.Pixel(i,j).Blue() >= 0.85 ){
+        //blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
+        SetPixel(i, j, temp.Pixel(i,j));
+      } else {
+        blended_pixel = (empty.Pixel(i,j) + temp.Pixel(i,j)) / 2;
+        SetPixel(i,j,blended_pixel);
+      }
     }
   }
 
