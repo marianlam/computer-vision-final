@@ -628,8 +628,9 @@ Harris(double sigma)
   // }
 }
 
+
 double** R2Image::
-frameProcessing(R2Image * otherImage)
+frameProcessing(R2Image * otherImage, double** globalHMatrix)
 {
   int px;
   int py;
@@ -860,7 +861,9 @@ frameProcessing(R2Image * otherImage)
 
   // remove bad feature points (outliers) from recentLocations vector
   for (int i = outlierIndexes_optimal.size() - 1; i >= 0; i--) {
-    recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
+    //recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
+    initialFeatureLocations.erase(initialFeatureLocations.begin()+ outlierIndexes_optimal[i]);
+    trackedFeatureLocations.erase(trackedFeatureLocations.begin() + outlierIndexes_optimal[i]);
   }
   // cout << "we get past removing bad feature points" << endl;
   // cout << "list of features size: " << recentLocations.size() << endl;
@@ -912,10 +915,47 @@ frameProcessing(R2Image * otherImage)
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
 
+  cout << "\n Global before multiplication: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << globalHMatrix[i][j] << "\t";
+    }
+    cout << "\n";
+  }
+
+    cout << "\n Best H Matrix: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << bestHMatrix[i][j] << "\t";
+    }
+    cout << "\n";
+  }
+  double** interMatrix = dmatrix(1,3,1,3);
+  // multiply the best H matrix by the global H matrix to get the transformation from the first frame to this current frame
+  interMatrix[1][1] = globalHMatrix[1][1]*bestHMatrix[1][1] + globalHMatrix[1][2]*bestHMatrix[2][1] + globalHMatrix[1][3]*bestHMatrix[3][1];
+  interMatrix[1][2] = globalHMatrix[1][1]*bestHMatrix[1][2] + globalHMatrix[1][2]*bestHMatrix[2][2] + globalHMatrix[1][3]*bestHMatrix[3][2];
+  interMatrix[1][3] = globalHMatrix[1][1]*bestHMatrix[1][3] + globalHMatrix[1][2]*bestHMatrix[2][3] + globalHMatrix[1][3]*bestHMatrix[3][3];
+  interMatrix[2][1] = globalHMatrix[2][1]*bestHMatrix[1][1] + globalHMatrix[2][2]*bestHMatrix[2][1] + globalHMatrix[2][3]*bestHMatrix[3][1];
+  interMatrix[2][2] = globalHMatrix[2][1]*bestHMatrix[1][2] + globalHMatrix[2][2]*bestHMatrix[2][2] + globalHMatrix[2][3]*bestHMatrix[3][2];
+  interMatrix[2][3] = globalHMatrix[2][1]*bestHMatrix[1][3] + globalHMatrix[2][2]*bestHMatrix[2][3] + globalHMatrix[2][3]*bestHMatrix[3][3];
+  interMatrix[3][1] = globalHMatrix[3][1]*bestHMatrix[1][1] + globalHMatrix[3][2]*bestHMatrix[2][1] + globalHMatrix[3][3]*bestHMatrix[3][1];
+  interMatrix[3][2] = globalHMatrix[3][1]*bestHMatrix[1][2] + globalHMatrix[3][2]*bestHMatrix[2][2] + globalHMatrix[3][3]*bestHMatrix[3][2];
+  interMatrix[3][3] = globalHMatrix[3][1]*bestHMatrix[1][3] + globalHMatrix[3][2]*bestHMatrix[2][3] + globalHMatrix[3][3]*bestHMatrix[3][3];
+
+  cout << "\n Global after multiplication: " << endl;
+  for (int i = 1; i <= 3; i++) {
+    for (int j = 1; j <= 3; j++) {
+      cout << interMatrix[i][j] << "\t";
+    }
+    cout << "\n";
+  }
+
   initialFeatureLocations.clear();
   trackedFeatureLocations.clear();
   
-  return bestHMatrix;
+  globalHMatrix = interMatrix;
+  
+  return globalHMatrix;
 }
 
 void R2Image::

@@ -139,7 +139,7 @@ class R2Image {
   void blendOtherImageHomography(R2Image * otherImage, double** bestHMatrix);
 
   // Video Processing
-  double** frameProcessing(R2Image * otherImage);
+  double** frameProcessing(R2Image * otherImage, double** globalHMatrix);
 
   // File reading/writing
   int Read(const char *filename);
@@ -162,6 +162,7 @@ class R2Image {
   int width;
   int height;
   vector<Feature> recentLocations;
+  double** globalHMatrix; 
   R2Image* recentImage;
   double** bestHMatrix; 
 };

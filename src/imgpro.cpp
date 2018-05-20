@@ -27,6 +27,7 @@
 #include "R2/R2.h"
 #include "R2Pixel.h"
 #include "R2Image.h"
+#include "svd.h"
 
 #include <string>
 
@@ -172,11 +173,24 @@ main(int argc, char **argv)
       // =============== VIDEO PROCESSING ===============
 
       //mainImage->Harris(2.0);
+      double ** identityMatrix = dmatrix(1,3,1,3);
+      identityMatrix[1][1] = 1;
+      identityMatrix[1][2] = 0;
+      identityMatrix[1][3] = 0;
 
+      identityMatrix[2][1] = 0;
+      identityMatrix[2][2] = 1;
+      identityMatrix[2][3] = 0;
+
+      identityMatrix[3][1] = 0;
+      identityMatrix[3][2] = 0;
+      identityMatrix[3][3] = 1;
+
+      double** multiplicationMatrix; 
       int end = 235;
       for (int i = 0; i < end-1; i++)
       {
-        double** bestHMatrix; 
+        
         R2Image *currentImage = new R2Image();
         R2Image *previousImage = new R2Image();
 
@@ -207,9 +221,15 @@ main(int argc, char **argv)
           exit(-1);
         }
 
-        previousImage -> Harris(2.0);
-        bestHMatrix = previousImage->frameProcessing(currentImage);
-        // currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
+        if(i == 0){
+          previousImage -> Harris(2.0);
+          multiplicationMatrix = previousImage->frameProcessing(currentImage, identityMatrix);
+        } else {
+          previousImage -> Harris(2.0);
+          multiplicationMatrix = previousImage -> frameProcessing(currentImage, multiplicationMatrix);
+        }
+        
+        currentImage->blendOtherImageHomography(graffitiImage, multiplicationMatrix);
 
         // write result to file
         if (!currentImage->Write(currentOutputFilename)) {
