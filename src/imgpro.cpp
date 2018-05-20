@@ -191,7 +191,7 @@ main(int argc, char **argv)
         }
 
         bestHMatrix = mainImage->frameProcessing(currentImage);
-        currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
+        // currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
 
         // write result to file
         if (!currentImage->Write(currentOutputFilename)) {
