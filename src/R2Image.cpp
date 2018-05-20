@@ -565,8 +565,8 @@ Harris(double sigma)
 
   vector<Feature> featureVec;
 
-  for (int i = 0.1 * width; i < (width - (0.1 * width)); i++) {
-    for (int j = 0.1 * height; j < (height - (0.1 * height)); j++) {
+  for (int i = 0.1 * width; i <= (width - (0.1 * width)); i++) {
+    for (int j = 0.1 * height; j <= (height - (0.1 * height)); j++) {
       temp.Pixel(i,j) = img1.Pixel(i,j)*img2.Pixel(i,j)-img3.Pixel(i,j)*img3.Pixel(i,j)
       -0.04*((img1.Pixel(i,j)+img2.Pixel(i,j))*(img1.Pixel(i,j)+img2.Pixel(i,j)));
 
@@ -613,19 +613,19 @@ Harris(double sigma)
     index++;
   }
 
-  for (int i = 0; i < recentLocations.size(); i++) {
-    R2Pixel redPixel(1.0,0.0,0.0,1.0);
-    if ((recentLocations[i].centerX - 5 > 0)
-    && (recentLocations[i].centerX + 5 < width)
-    && (recentLocations[i].centerY - 5 > 0)
-    && (recentLocations[i].centerY + 5 < height)) {
-      for(int u = -5; u < 5; u++){
-        for(int v = -5; v < 5; v++){
-          SetPixel(recentLocations[i].centerX+u, recentLocations[i].centerY+v, redPixel);
-        }
-      }
-    }
-  }
+  // for (int i = 0; i < recentLocations.size(); i++) {
+  //   R2Pixel redPixel(1.0,0.0,0.0,1.0);
+  //   if ((recentLocations[i].centerX - 5 > 0)
+  //   && (recentLocations[i].centerX + 5 < width)
+  //   && (recentLocations[i].centerY - 5 > 0)
+  //   && (recentLocations[i].centerY + 5 < height)) {
+  //     for(int u = -5; u < 5; u++){
+  //       for(int v = -5; v < 5; v++){
+  //         SetPixel(recentLocations[i].centerX+u, recentLocations[i].centerY+v, redPixel);
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 double** R2Image::
@@ -646,8 +646,9 @@ frameProcessing(R2Image * otherImage)
     min = 100000;
     minX = 0;
     minY = 0;
-      
- if ((px + (-0.01 * width)) >= 0 && (px + (-0.01 * width)) < width && (py + (-0.01 * height)) >= 0 && (py + (-0.01 * height)) < height) {
+    //cout << "px before: " << px << " py before: " << py << endl;
+      //(px + (-0.1 * width)) > 0 && (px + (-0.1 * width)) < width && (py + (-0.1 * height)) > 0 && (py + (-0.1 * height)) < height
+ if (px >= 0.1*width && px <= width-(0.1*width) && py >= 0.1*height && py <= height-(0.1*height)) {
       for (int b = px + (-0.1 * width); b < px + (0.1 * width); b++) {
         for (int c = py + (-0.1 * height); c < py + (0.1 * height); c++) {
           R2Pixel *ssd = new R2Pixel();
@@ -655,9 +656,9 @@ frameProcessing(R2Image * otherImage)
             for (int v = -6; v < 6; v++) {
               // calculate SSD for this region
               *ssd += (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v)) * (otherImage->Pixel(b+u, c+v) - Pixel(px+u,py+v));
-              sum = ssd->Red() + ssd->Green() + ssd->Blue();
             }
           }
+          sum = ssd->Red() + ssd->Green() + ssd->Blue();
           if (sum < min) {
             min = sum;
             minX = b;
@@ -665,21 +666,25 @@ frameProcessing(R2Image * otherImage)
           }
         }
       }
+      //cout << "px after: " << px << " py after: " << py << endl;
       // add pixel with smallest SSD to vector
       initialFeatureLocations.push_back(Feature(px, py, 0)); // original feature point locations
       trackedFeatureLocations.push_back(Feature(minX, minY, min));  // where they map to
     }
   }
+
+  // update class vector of all good features (recentLocations) to be newly tracked features
+  //recentLocations = trackedFeatureLocations;
     //cout << "Tracked Features Size: " << trackedFeatureLocations.size() << endl; 
-    for (int i = 0; i < trackedFeatureLocations.size(); i++) {
+    for (int i = 0; i < recentLocations.size(); i++) {
     R2Pixel redPixel(1.0,0.0,0.0,1.0);
-    if ((trackedFeatureLocations[i].centerX - 5 > 0)
-    && (trackedFeatureLocations[i].centerX + 5 < width)
-    && (trackedFeatureLocations[i].centerY - 5 > 0)
-    && (trackedFeatureLocations[i].centerY + 5 < height)) {
+    if ((recentLocations[i].centerX - 5 > 0)
+    && (recentLocations[i].centerX + 5 < width)
+    && (recentLocations[i].centerY - 5 > 0)
+    && (recentLocations[i].centerY + 5 < height)) {
       for(int u = -5; u < 5; u++){
         for(int v = -5; v < 5; v++){
-          otherImage -> SetPixel(trackedFeatureLocations[i].centerX+u, trackedFeatureLocations[i].centerY+v, redPixel);
+          otherImage -> SetPixel(recentLocations[i].centerX+u, recentLocations[i].centerY+v, redPixel);
         }
       }
     }
@@ -700,16 +705,16 @@ frameProcessing(R2Image * otherImage)
   //     }
   // }
 
-  cout << "trackedFeatureLocations: " << endl;
-  for (int i = 0; i < initialFeatureLocations.size(); i++) {
-    cout << " px: " << recentLocations[i].centerX << " py: " << recentLocations[i].centerY << endl;
+  //cout << "trackedFeatureLocations: " << endl;
+  // for (int i = 0; i < initialFeatureLocations.size(); i++) {
+  //   cout << " px: " << recentLocations[i].centerX << " py: " << recentLocations[i].centerY << endl;
 
-    cout << " initial center x: " << initialFeatureLocations[i].centerX << " initial center y: " << initialFeatureLocations[i].centerY << endl;
+  //   cout << " initial center x: " << initialFeatureLocations[i].centerX << " initial center y: " << initialFeatureLocations[i].centerY << endl;
 
-    cout << "tracked center x: " << trackedFeatureLocations[i].centerX << "tracked center y: " << trackedFeatureLocations[i].centerY << endl;
+  //   cout << "tracked center x: " << trackedFeatureLocations[i].centerX << "tracked center y: " << trackedFeatureLocations[i].centerY << endl;
 
-  }
-  cout << "initialFeatureLocations size: " << trackedFeatureLocations.size() << endl << endl;
+  // }
+  cout << "initialFeatureLocations size: " << initialFeatureLocations.size() << endl << endl;
 
   // cout << "trackedFeatureLocations: " << endl;
   // for (int i = 0; i < trackedFeatureLocations.size(); i++) {
@@ -834,7 +839,7 @@ frameProcessing(R2Image * otherImage)
       distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
       // if distance is beneath threshold, increment counter
-      if (distance <= 3.0) {
+      if (distance <= 5.0) {
         inliers++;
       } else {
         outliers++;
@@ -852,8 +857,7 @@ frameProcessing(R2Image * otherImage)
     N++;
   }
   // cout << "we get past the big WHILE LOOP" << endl;
-  // update class vector of all good features (recentLocations) to be newly tracked features
-  recentLocations = trackedFeatureLocations;
+
   // remove bad feature points (outliers) from recentLocations vector
   for (int i = outlierIndexes_optimal.size() - 1; i >= 0; i--) {
     recentLocations.erase(recentLocations.begin() + outlierIndexes_optimal[i]);
@@ -866,8 +870,8 @@ frameProcessing(R2Image * otherImage)
   vector<int> optimal_xd;
   vector<int> optimal_yd;
 
-  cout << "trackedFeatureLocations size: " << trackedFeatureLocations.size() << endl;
-  cout << "initialFeatureLocations size: " << initialFeatureLocations.size() << endl;
+  // cout << "trackedFeatureLocations size: " << trackedFeatureLocations.size() << endl;
+  // cout << "initialFeatureLocations size: " << initialFeatureLocations.size() << endl;
 
   // re-calculate H matrix with ALL good points
   for (int i = 0; i < trackedFeatureLocations.size(); i++) {
@@ -887,7 +891,7 @@ frameProcessing(R2Image * otherImage)
 
     distance = sqrt(pow(vectorHA[0] - trackedFeatureLocations[i].centerX, 2) + pow(vectorHA[1] - trackedFeatureLocations[i].centerY, 2));
 
-    if (distance <= 3.0) {
+    if (distance <= 5.0) {
       optimal_x.push_back(initialFeatureLocations[i].centerX);
       optimal_y.push_back(initialFeatureLocations[i].centerY);
       optimal_xd.push_back(trackedFeatureLocations[i].centerX); 
@@ -899,14 +903,17 @@ frameProcessing(R2Image * otherImage)
       // otherImage -> line(initialFeatureLocations[i].centerX, trackedFeatureLocations[i].centerX, initialFeatureLocations[i].centerY, trackedFeatureLocations[i].centerY, 1, 0, 0);
     }
   }
-  cout << "we get past re-calculating the H matrix with all good points" << endl;
+  //cout << "we get past re-calculating the H matrix with all good points" << endl;
 
   // draw lines
-  // for (int i = 0; i < optimal_x.size(); i++) {
-  //   otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
-  // }
+  for (int i = 0; i < optimal_x.size(); i++) {
+    otherImage -> line(optimal_x[i], optimal_xd[i], optimal_y[i], optimal_yd[i], 0, 1, 0);
+  }
 
   bestHMatrix = svdTest(optimal_x, optimal_y, optimal_xd, optimal_yd, max_inliers);
+
+  initialFeatureLocations.clear();
+  trackedFeatureLocations.clear();
   
   return bestHMatrix;
 }

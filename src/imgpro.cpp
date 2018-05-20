@@ -148,6 +148,8 @@ main(int argc, char **argv)
 
       R2Image *mainImage = new R2Image();
       R2Image *graffitiImage = new R2Image();
+      
+      char *prevFilename = new char[100];
       char *currentFilename = new char[100];
       char *currentOutputFilename = new char[100];
       if (!mainImage) {
@@ -155,11 +157,11 @@ main(int argc, char **argv)
         exit(-1);
       }
       // read very first frame
-      sprintf(currentFilename, inputName, 0);
-      if (!mainImage->Read(currentFilename)) {
-        fprintf(stderr, "Unable to read first image\n");
-        exit(-1);
-      }
+      //sprintf(currentFilename, inputName, 0);
+      // if (!mainImage->Read(currentFilename)) {
+      //   fprintf(stderr, "Unable to read first image\n");
+      //   exit(-1);
+      // }
 
       // read in graffiti image
       if (!graffitiImage->Read(graffitiFileName)) {
@@ -169,20 +171,30 @@ main(int argc, char **argv)
 
       // =============== VIDEO PROCESSING ===============
 
-      mainImage->Harris(2.0);
+      //mainImage->Harris(2.0);
 
       int end = 235;
-      for (int i = 1; i < end; i++)
+      for (int i = 0; i < end-1; i++)
       {
         double** bestHMatrix; 
         R2Image *currentImage = new R2Image();
+        R2Image *previousImage = new R2Image();
+
         if (!currentImage) {
           fprintf(stderr, "Unable to allocate image %d\n",i);
           exit(-1);
         }
 
-        sprintf(currentFilename, inputName, i);
-        sprintf(currentOutputFilename, outputName, i);
+        if (!previousImage) {
+          fprintf(stderr, "Unable to allocate previous image %d\n",i);
+          exit(-1);
+        }
+
+        
+
+        sprintf(prevFilename, inputName, i);
+        sprintf(currentFilename, inputName, i+1);
+        sprintf(currentOutputFilename, outputName, i+1);
 
         printf("Processing file %s\n", currentFilename);
         if (!currentImage->Read(currentFilename)) {
@@ -190,7 +202,13 @@ main(int argc, char **argv)
           exit(-1);
         }
 
-        bestHMatrix = mainImage->frameProcessing(currentImage);
+        if (!previousImage->Read(prevFilename)) {
+          fprintf(stderr, "Unable to read previous image %d\n", i);
+          exit(-1);
+        }
+
+        previousImage -> Harris(2.0);
+        bestHMatrix = previousImage->frameProcessing(currentImage);
         // currentImage->blendOtherImageHomography(graffitiImage, bestHMatrix);
 
         // write result to file
@@ -199,6 +217,7 @@ main(int argc, char **argv)
           exit(-1);
         }
         delete currentImage;
+        delete previousImage;
       }
       delete mainImage;
       delete graffitiImage;
